@@ -41,3 +41,17 @@ body {
   background-size: 200% 200%;
   animation: glow-pan 8s ease-in-out infinite;
 }
+
+@keyframes arrow-bob {
+  0%,
+  100% {
+    transform: translateY(-4px);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+.animate-arrow-bob {
+  animation: arrow-bob 1.8s ease-in-out infinite;
+}

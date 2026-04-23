@@ -2,13 +2,13 @@ import Link from "next/link";
 
 export default function Blog() {
   return (
-    <section className="pt-12">
+    <section>
       <div className="w-full overflow-hidden">
         <div
           className="relative aspect-[16/9] w-full bg-cover bg-center sm:aspect-[16/8]"
           style={{ backgroundImage: "url('/blog.png')" }}
         >
-          <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12 lg:p-16">
+          <div className="absolute inset-0 flex flex-col justify-center p-8 sm:p-12 lg:p-16">
             <Link
               href="#"
               className="group inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-neutral-100"
