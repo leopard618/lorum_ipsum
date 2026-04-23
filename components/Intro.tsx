@@ -65,9 +65,21 @@ export default function Intro() {
 
             <Link
               href="#"
-              className="rounded-full border border-white/60 px-5 py-2 text-[11px] font-medium text-white transition hover:bg-white hover:text-black sm:text-xs"
+              className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full border border-white/60 px-5 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:border-white hover:shadow-[0_8px_24px_rgba(255,255,255,0.2)] sm:text-xs"
             >
-              Schedule call
+              <span
+                aria-hidden
+                className="absolute inset-0 origin-left scale-x-0 bg-white transition-transform duration-500 ease-out group-hover:scale-x-100"
+              />
+
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              </span>
+
+              <span className="relative transition-colors duration-500 group-hover:text-black">
+                Schedule call
+              </span>
             </Link>
           </header>
 
