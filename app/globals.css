@@ -55,3 +55,37 @@ body {
 .animate-arrow-bob {
   animation: arrow-bob 1.8s ease-in-out infinite;
 }
+
+.fps-slide {
+  scrollbar-width: none;
+}
+.fps-slide::-webkit-scrollbar {
+  display: none;
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(32px);
+  filter: blur(4px);
+  transition-property: opacity, transform, filter;
+  transition-duration: 1100ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+[data-reveal].is-revealed,
+[data-slide-active="true"] [data-reveal] {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal].is-revealed {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}

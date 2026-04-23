@@ -2,22 +2,28 @@ import Link from "next/link";
 
 export default function Blog() {
   return (
-    <section>
-      <div className="w-full overflow-hidden">
+    <section className="h-full w-full">
+      <div className="h-full w-full overflow-hidden">
         <div
-          className="relative aspect-[16/9] w-full bg-cover bg-center sm:aspect-[16/8]"
+          className="relative h-full w-full bg-cover bg-center"
           style={{ backgroundImage: "url('/blog.png')" }}
         >
           <div className="absolute inset-0 flex flex-col justify-center p-8 sm:p-12 lg:p-16">
-            <Link
-              href="#"
-              className="group inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-neutral-100"
-            >
-              Read More
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
+            <div data-reveal style={{ transitionDelay: "100ms" }}>
+              <Link
+                href="#"
+                className="group inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-neutral-100"
+              >
+                Read More
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
 
-            <h2 className="mt-5 text-4xl font-extrabold uppercase tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h2
+              data-reveal
+              style={{ transitionDelay: "300ms" }}
+              className="mt-5 text-4xl font-extrabold uppercase tracking-tight text-white sm:text-5xl lg:text-6xl"
+            >
               Blog Title
             </h2>
           </div>

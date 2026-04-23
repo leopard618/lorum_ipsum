@@ -40,7 +40,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Newsletter */}
           <div className="lg:col-span-5">
-            <h3 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+            <h3
+              data-reveal
+              style={{ transitionDelay: "0ms" }}
+              className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl"
+            >
               Subscribe to our{" "}
               <span className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
                 newsletter.
@@ -49,6 +53,8 @@ export default function Footer() {
 
             <form
               onSubmit={(e) => e.preventDefault()}
+              data-reveal
+              style={{ transitionDelay: "200ms" }}
               className="group relative mt-7 flex w-full max-w-md items-center gap-3 border-b border-white/20 py-3 transition focus-within:border-white"
             >
               <input
@@ -70,6 +76,8 @@ export default function Footer() {
           {/* Link columns */}
           <nav
             aria-label="Footer"
+            data-reveal
+            style={{ transitionDelay: "300ms" }}
             className="grid grid-cols-2 gap-8 lg:col-span-4 lg:grid-cols-2"
           >
             <FooterColumn
@@ -91,7 +99,11 @@ export default function Footer() {
           </nav>
 
           {/* Contact */}
-          <div className="lg:col-span-3">
+          <div
+            data-reveal
+            style={{ transitionDelay: "450ms" }}
+            className="lg:col-span-3"
+          >
             <ul className="space-y-4 text-sm text-white/75">
               <li className="flex items-center gap-3">
                 <PhoneIcon className="h-4 w-4 flex-none text-white/60" />
@@ -117,7 +129,11 @@ export default function Footer() {
         </div>
 
         {/* giant logo */}
-        <div className="mt-16 border-t border-white/10 pt-10 sm:mt-20 sm:pt-14">
+        <div
+          data-reveal
+          style={{ transitionDelay: "150ms" }}
+          className="mt-16 border-t border-white/10 pt-10 sm:mt-20 sm:pt-14"
+        >
           <div className="group relative">
             <div
               className="select-none text-[14vw] font-extrabold leading-[0.85] tracking-tight text-transparent sm:text-[10vw] lg:text-[7vw]"
@@ -136,7 +152,11 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="relative z-[1] mx-auto mt-10 flex max-w-7xl flex-col items-center gap-6 border-t border-white/10 px-8 py-8 sm:flex-row sm:justify-between sm:px-12 lg:px-16">
+      <div
+        data-reveal
+        style={{ transitionDelay: "300ms" }}
+        className="relative z-[1] mx-auto mt-10 flex max-w-7xl flex-col items-center gap-6 border-t border-white/10 px-8 py-8 sm:flex-row sm:justify-between sm:px-12 lg:px-16"
+      >
         <div className="flex items-center gap-3">
           <SocialLink href="#" label="X">
             <XIcon className="h-3.5 w-3.5" />
