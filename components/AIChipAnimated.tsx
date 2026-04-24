@@ -103,23 +103,23 @@ export default function AIChipAnimated({
     >
       <defs>
         <linearGradient id="aiChipBody" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#4b2a85" />
-          <stop offset="55%" stopColor="#371f68" />
-          <stop offset="100%" stopColor="#1d0f45" />
+          <stop offset="0%" stopColor="#1f4aa6" />
+          <stop offset="55%" stopColor="#13317a" />
+          <stop offset="100%" stopColor="#06194a" />
         </linearGradient>
         <linearGradient id="aiChipInner" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#5c35a1" />
-          <stop offset="100%" stopColor="#281462" />
+          <stop offset="0%" stopColor="#2a62c8" />
+          <stop offset="100%" stopColor="#0c1f5e" />
         </linearGradient>
         <radialGradient id="aiBottomGlow" cx="50%" cy="100%" r="60%">
-          <stop offset="0%" stopColor="rgba(225,175,255,0.95)" />
-          <stop offset="55%" stopColor="rgba(170,110,235,0.35)" />
-          <stop offset="100%" stopColor="rgba(170,110,235,0)" />
+          <stop offset="0%" stopColor="rgba(175,215,255,0.95)" />
+          <stop offset="55%" stopColor="rgba(85,150,235,0.35)" />
+          <stop offset="100%" stopColor="rgba(85,150,235,0)" />
         </radialGradient>
         <linearGradient id="aiConnectorGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="rgba(230,200,255,0)" />
-          <stop offset="50%" stopColor="rgba(245,220,255,1)" />
-          <stop offset="100%" stopColor="rgba(230,200,255,0)" />
+          <stop offset="0%" stopColor="rgba(200,225,255,0)" />
+          <stop offset="50%" stopColor="rgba(235,245,255,1)" />
+          <stop offset="100%" stopColor="rgba(200,225,255,0)" />
         </linearGradient>
 
         <clipPath id="aiInnerClip">
@@ -138,7 +138,7 @@ export default function AIChipAnimated({
 
       <g
         fill="none"
-        stroke="rgba(220,180,255,0.28)"
+        stroke="rgba(175,215,255,0.28)"
         strokeWidth="1.2"
         strokeLinecap="round"
       >
@@ -149,10 +149,10 @@ export default function AIChipAnimated({
 
       <g
         fill="none"
-        stroke="#f0e1ff"
+        stroke="#e1efff"
         strokeWidth="1.6"
         strokeLinecap="round"
-        style={{ filter: "drop-shadow(0 0 3px rgba(210,160,255,0.95))" }}
+        style={{ filter: "drop-shadow(0 0 3px rgba(140,195,255,0.95))" }}
       >
         {allTraces.map((t, i) => (
           <path
@@ -176,7 +176,7 @@ export default function AIChipAnimated({
               cy={e.cy}
               r="3.6"
               fill="none"
-              stroke="rgba(220,180,255,0.75)"
+              stroke="rgba(175,215,255,0.75)"
               strokeWidth="0.9"
               className="ai-node-ripple"
               style={{
@@ -188,9 +188,9 @@ export default function AIChipAnimated({
               cx={e.cx}
               cy={e.cy}
               r="2.2"
-              fill="#f0e1ff"
+              fill="#e1efff"
               style={{
-                filter: "drop-shadow(0 0 4px rgba(210,160,255,0.95))",
+                filter: "drop-shadow(0 0 4px rgba(140,195,255,0.95))",
               }}
             />
           </g>
@@ -203,7 +203,7 @@ export default function AIChipAnimated({
         width="204"
         height="204"
         rx="18"
-        fill="rgba(20,8,45,0.35)"
+        fill="rgba(5,15,40,0.45)"
         style={{ filter: "blur(4px)" }}
       />
 
@@ -214,7 +214,7 @@ export default function AIChipAnimated({
         height="200"
         rx="16"
         fill="url(#aiChipBody)"
-        stroke="rgba(230,200,255,0.9)"
+        stroke="rgba(200,225,255,0.9)"
         strokeWidth="1.6"
       />
 
@@ -225,11 +225,11 @@ export default function AIChipAnimated({
         height="164"
         rx="8"
         fill="url(#aiChipInner)"
-        stroke="rgba(230,200,255,0.35)"
+        stroke="rgba(200,225,255,0.35)"
         strokeWidth="1"
       />
 
-      <g fill="rgba(235,210,255,0.35)" clipPath="url(#aiInnerClip)">
+      <g fill="rgba(210,230,255,0.35)" clipPath="url(#aiInnerClip)">
         {dotGrid.map((d, i) => (
           <circle key={i} cx={d.cx} cy={d.cy} r="1" />
         ))}
@@ -241,19 +241,19 @@ export default function AIChipAnimated({
           y="106"
           width="164"
           height="2"
-          fill="rgba(245,225,255,0.9)"
+          fill="rgba(225,240,255,0.9)"
           className="ai-scanline"
           style={{
-            filter: "drop-shadow(0 0 6px rgba(220,170,255,0.9))",
+            filter: "drop-shadow(0 0 6px rgba(140,195,255,0.9))",
           }}
         />
       </g>
 
-      <g stroke="rgba(235,210,255,0.9)" strokeWidth="1.2">
-        <circle cx="142" cy="122" r="4" fill="#1b0d3d" />
-        <circle cx="278" cy="122" r="4" fill="#1b0d3d" />
-        <circle cx="142" cy="258" r="4" fill="#1b0d3d" />
-        <circle cx="278" cy="258" r="4" fill="#1b0d3d" />
+      <g stroke="rgba(210,230,255,0.9)" strokeWidth="1.2">
+        <circle cx="142" cy="122" r="4" fill="#07174a" />
+        <circle cx="278" cy="122" r="4" fill="#07174a" />
+        <circle cx="142" cy="258" r="4" fill="#07174a" />
+        <circle cx="278" cy="258" r="4" fill="#07174a" />
       </g>
 
       <g className="ai-text-pulse">
@@ -270,7 +270,7 @@ export default function AIChipAnimated({
             fontFamily:
               "var(--font-pixel), 'Press Start 2P', 'VT323', 'Courier New', ui-monospace, monospace",
             filter:
-              "drop-shadow(0 0 10px rgba(235,200,255,0.9)) drop-shadow(0 0 22px rgba(180,110,255,0.55))",
+              "drop-shadow(0 0 10px rgba(210,230,255,0.9)) drop-shadow(0 0 22px rgba(95,155,235,0.55))",
           }}
         >
           AI
@@ -289,7 +289,7 @@ export default function AIChipAnimated({
         strokeLinecap="round"
         pathLength={100}
         className="ai-border-beam"
-        style={{ filter: "drop-shadow(0 0 6px rgba(220,170,255,0.95))" }}
+        style={{ filter: "drop-shadow(0 0 6px rgba(155,200,255,0.95))" }}
       />
 
       <rect
@@ -313,8 +313,8 @@ export default function AIChipAnimated({
         width="84"
         height="9"
         rx="1.8"
-        fill="#1a0b3a"
-        stroke="rgba(235,210,255,0.5)"
+        fill="#061840"
+        stroke="rgba(210,230,255,0.5)"
         strokeWidth="0.9"
       />
       <rect

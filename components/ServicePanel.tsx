@@ -44,8 +44,8 @@ export const services: Service[] = [
     imageWidth: "38%",
     imageOffsetRight: "5%",
     floatVariant: "subtle",
-    background: "linear-gradient(135deg, #0d0420 0%, #000000 70%)",
-    accent: "rgba(150, 85, 225, 0.38)",
+    background: "linear-gradient(135deg, #041028 0%, #000000 70%)",
+    accent: "rgba(85, 150, 235, 0.4)",
     renderMedia: () => <AIChipAnimated />,
   },
   {
