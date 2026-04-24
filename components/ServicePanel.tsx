@@ -35,7 +35,6 @@ export const services: Service[] = [
     accent: "rgba(70, 120, 230, 0.38)",
   },
   {
-    eyebrow: "Your fastest path to production with A.I Automations",
     title: "A.I Automations",
     description:
       "Data-driven digital marketing strategies that boost your ROI and accelerate business growth.",
@@ -136,10 +135,12 @@ export default function ServicePanel({
         />
       )}
 
-      {/* Left dark gradient for text legibility */}
+      {/* Left dark gradient for text legibility. On phones the image fills
+          the panel, so we run an opaque-to-transparent black wash across the
+          full width to keep the headline + CTA readable. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black via-black/75 to-transparent md:w-[60%] md:via-black/35 md:to-transparent"
+        className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black via-black/85 to-black/30 md:w-[60%] md:via-black/35 md:to-transparent"
       />
 
       {/* Soft vignette */}
@@ -229,7 +230,7 @@ export default function ServicePanel({
         <h2
           data-reveal
           style={{ transitionDelay: "360ms" }}
-          className="mt-6 whitespace-nowrap text-5xl font-light leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl"
+          className="mt-6 whitespace-normal break-words text-4xl font-light leading-[1.05] tracking-tight text-white sm:text-5xl md:whitespace-nowrap md:text-6xl lg:text-7xl"
         >
           {service.title}
         </h2>

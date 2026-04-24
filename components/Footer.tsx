@@ -37,9 +37,9 @@ export default function Footer() {
       {/* scroll to top */}
       <ScrollTopButton />
 
-      <div className="relative z-[1] mx-auto max-w-7xl px-8 pt-20 sm:px-12 lg:px-16 lg:pt-24">
+      <div className="relative z-[1] mx-auto max-w-7xl px-6 pt-16 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
         {/* top grid */}
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
+        <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Newsletter */}
           <div className="lg:col-span-5">
             <h3
@@ -134,7 +134,7 @@ export default function Footer() {
         <div
           data-reveal
           style={{ transitionDelay: "150ms" }}
-          className="mt-16 border-t border-white/10 pt-10 sm:mt-20 sm:pt-14"
+          className="mt-12 border-t border-white/10 pt-8 sm:mt-20 sm:pt-14"
         >
           <div className="group relative">
             <div
@@ -157,7 +157,7 @@ export default function Footer() {
       <div
         data-reveal
         style={{ transitionDelay: "300ms" }}
-        className="relative z-[1] mx-auto mt-10 flex max-w-7xl flex-col items-center gap-6 border-t border-white/10 px-8 py-8 sm:flex-row sm:justify-between sm:px-12 lg:px-16"
+        className="relative z-[1] mx-auto mt-8 flex max-w-7xl flex-col items-center gap-5 border-t border-white/10 px-6 py-6 sm:mt-10 sm:flex-row sm:justify-between sm:gap-6 sm:px-12 sm:py-8 lg:px-16"
       >
         <div className="flex items-center gap-3">
           <SocialLink href="#" label="X">

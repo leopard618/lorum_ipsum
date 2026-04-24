@@ -143,11 +143,13 @@ export default function Blog() {
         </div>
 
         {/* Bottom-right: Prev / Next post controls. Both wrap around, so
-            clicking past either end cycles through the full post list. */}
+            clicking past either end cycles through the full post list. On
+            phones we tighten the spacing and pull the cluster a touch in
+            from the corner so it can't collide with the pagination pills. */}
         <div
           data-reveal
           style={{ transitionDelay: "900ms" }}
-          className="absolute bottom-8 right-8 z-10 flex items-center gap-4 sm:bottom-12 sm:right-12 lg:bottom-16 lg:right-16"
+          className="absolute bottom-6 right-6 z-10 flex items-center gap-2 sm:bottom-12 sm:right-12 sm:gap-4 lg:bottom-16 lg:right-16"
         >
           <NavCircleButton
             direction="prev"
@@ -172,8 +174,10 @@ export default function Blog() {
           />
         </div>
 
-        {/* Content anchored bottom-left — editorial "poster" layout */}
-        <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12 lg:p-16">
+        {/* Content anchored bottom-left — editorial "poster" layout. We keep
+            the bottom padding generous on phones so the copy clears the
+            Prev/Next nav cluster sitting at the lower-right corner. */}
+        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-24 sm:p-12 lg:p-16">
           <div className="max-w-2xl">
             {/* Per-click swap container: slides out, post index changes
                 while invisible, then slides back in with the new copy. */}
@@ -201,7 +205,7 @@ export default function Blog() {
               <h2
                 data-reveal
                 style={{ transitionDelay: "220ms" }}
-                className="mt-6 text-5xl font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:text-6xl lg:text-7xl"
+                className="mt-5 text-[2.5rem] font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:mt-6 sm:text-6xl lg:text-7xl"
               >
                 {post.titleLineOne} <br className="hidden sm:block" />
                 {post.titleLineTwo}
@@ -217,7 +221,7 @@ export default function Blog() {
               <p
                 data-reveal
                 style={{ transitionDelay: "500ms" }}
-                className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/75"
+                className="mt-5 max-w-lg text-sm leading-relaxed text-white/75 sm:mt-6 sm:text-[15px]"
               >
                 {post.description}
               </p>
@@ -225,7 +229,7 @@ export default function Blog() {
               <div
                 data-reveal
                 style={{ transitionDelay: "620ms" }}
-                className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] font-medium uppercase tracking-[0.25em] text-white/55"
+                className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-medium uppercase tracking-[0.22em] text-white/55 sm:mt-6 sm:gap-x-5 sm:text-[11px] sm:tracking-[0.25em]"
               >
                 <span>{post.byline}</span>
                 <span className="h-1 w-1 rounded-full bg-white/40" />
@@ -237,7 +241,7 @@ export default function Blog() {
               <div
                 data-reveal
                 style={{ transitionDelay: "780ms" }}
-                className="mt-10"
+                className="mt-7 sm:mt-10"
               >
                 <Link
                   href="#"
@@ -256,14 +260,14 @@ export default function Blog() {
             <div
               data-reveal
               style={{ transitionDelay: "1020ms" }}
-              className="mt-10 flex items-center gap-2"
+              className="mt-7 flex items-center gap-1.5 sm:mt-10 sm:gap-2"
               aria-hidden
             >
               {posts.map((_, i) => (
                 <span
                   key={i}
                   className={`h-[3px] rounded-full transition-all duration-500 ${
-                    i === idx ? "w-8 bg-white" : "w-3 bg-white/30"
+                    i === idx ? "w-6 bg-white sm:w-8" : "w-2.5 bg-white/30 sm:w-3"
                   }`}
                 />
               ))}
