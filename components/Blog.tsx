@@ -54,6 +54,29 @@ const posts: BlogPost[] = [
     readTime: "7 min read",
     date: "Feb 2026",
   },
+  {
+    eyebrow: "Opinion · Work",
+    titleLineOne: "Slow Software",
+    titleLineTwo: "For Fast Teams",
+    description:
+      "Speed of shipping is not the same as speed of thought. Why the tools that respect deep work will outlast the ones optimised for notifications and dashboards.",
+    byline: "Kenji Ito · Staff Product Manager",
+    readTime: "5 min read",
+    date: "Feb 2026",
+  },
+];
+
+/**
+ * Hybrid visual strategy — three hand-picked photos that cycle via `idx %
+ * visuals.length`. Blog posts can grow freely; the visuals keep looping.
+ * To add the remaining two hero images, drop them into /public and swap
+ * the filenames below. Until then all three slots point at the same file
+ * so nothing 404s in development.
+ */
+const visuals: string[] = [
+  "/blog.png",
+  "/blog.png", // TODO: replace with /blog-2.png
+  "/blog.png", // TODO: replace with /blog-3.png
 ];
 
 const TRANSITION_MS = 480;
@@ -63,12 +86,16 @@ export default function Blog() {
   const [exiting, setExiting] = useState(false);
 
   const post = posts[idx];
+  const activeVisual = idx % visuals.length;
 
-  const goToNextPost = () => {
+  const changePost = (direction: 1 | -1) => {
     if (exiting) return;
     setExiting(true);
     window.setTimeout(() => {
-      setIdx((current) => (current + 1) % posts.length);
+      setIdx((current) => {
+        const total = posts.length;
+        return (current + direction + total) % total;
+      });
       setExiting(false);
     }, TRANSITION_MS);
   };
@@ -76,10 +103,21 @@ export default function Blog() {
   return (
     <section className="h-full w-full">
       <div className="relative h-full w-full overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/blog.png')" }}
-        />
+        {/* Layered background images — only the active one is opaque, the
+            rest fade out. Gives a smooth crossfade when `idx` advances
+            through a visual boundary without reloading any image. */}
+        {visuals.map((src, i) => (
+          <div
+            key={`bg-${i}`}
+            aria-hidden
+            className="absolute inset-0 bg-cover bg-center transition-opacity ease-out"
+            style={{
+              backgroundImage: `url('${src}')`,
+              opacity: i === activeVisual ? 1 : 0,
+              transitionDuration: `${TRANSITION_MS * 2}ms`,
+            }}
+          />
+        ))}
 
         {/* Left-to-right scrim so copy stays legible over the portrait */}
         <div
@@ -104,9 +142,8 @@ export default function Blog() {
           </span>
         </div>
 
-        {/* Bottom-right: "Next Blog" cycle CTA. Click advances `idx` (with
-            wrap-around) so the post body slides out, swaps content, and
-            slides back in. */}
+        {/* Bottom-right: Previous / Next post controls. Both wrap around
+            (idx == 0 with "prev" jumps to the last post, and vice versa). */}
         <div
           data-reveal
           style={{ transitionDelay: "900ms" }}
@@ -114,36 +151,33 @@ export default function Blog() {
         >
           <span
             aria-hidden
-            className="hidden h-px w-14 bg-white/35 sm:block"
+            className="hidden h-px w-10 bg-white/35 sm:block"
           />
           <span className="hidden text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70 sm:block">
             Next Blog
           </span>
-          <button
-            type="button"
-            onClick={goToNextPost}
+
+          <NavCircleButton
+            direction="prev"
+            onClick={() => changePost(-1)}
             disabled={exiting}
-            aria-label={`Show next blog post (${idx + 1} of ${posts.length})`}
-            className="group relative grid h-14 w-14 flex-none place-items-center rounded-full border border-white/50 text-white transition-[transform,background-color,border-color,color,opacity] duration-300 hover:scale-110 hover:border-white hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:bg-transparent disabled:hover:text-white"
-          >
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-full border border-white/30 opacity-0 transition-opacity duration-300 group-hover:animate-ping group-hover:opacity-60 group-disabled:hidden"
-            />
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
-          </button>
+            label={`Show previous blog post (${idx + 1} of ${posts.length})`}
+          />
+          <NavCircleButton
+            direction="next"
+            onClick={() => changePost(1)}
+            disabled={exiting}
+            label={`Show next blog post (${idx + 1} of ${posts.length})`}
+          />
         </div>
 
         {/* Content anchored bottom-left — editorial "poster" layout */}
         <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12 lg:p-16">
           <div className="max-w-2xl">
-            {/* Inner wrapper handles the per-click swap animation: it slides
-                out, the post index changes mid-transition, then slides back
-                in with the new copy. Keep this wrapper outside the
-                data-reveal'd elements so the slide-stagger only plays on
-                first slide entry, not every click. */}
+            {/* Per-click swap container: slides out, post index changes
+                while invisible, then slides back in with the new copy. */}
             <div
-              className={`transition-[opacity,transform,filter] ease-out`}
+              className="transition-[opacity,transform,filter] ease-out"
               style={{
                 transitionDuration: `${TRANSITION_MS}ms`,
                 opacity: exiting ? 0 : 1,
@@ -217,8 +251,7 @@ export default function Blog() {
               </div>
             </div>
 
-            {/* Pagination dots — visible cue that there are multiple posts
-                and where you are in the rotation. */}
+            {/* Pagination pills — which post you're on within the rotation. */}
             <div
               data-reveal
               style={{ transitionDelay: "1020ms" }}
@@ -238,6 +271,41 @@ export default function Blog() {
         </div>
       </div>
     </section>
+  );
+}
+
+function NavCircleButton({
+  direction,
+  onClick,
+  disabled,
+  label,
+}: {
+  direction: "prev" | "next";
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  const Icon = direction === "next" ? ArrowRight : ArrowLeft;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="group relative grid h-12 w-12 flex-none place-items-center rounded-full border border-white/50 text-white transition-[transform,background-color,border-color,color,opacity] duration-300 hover:scale-110 hover:border-white hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:bg-transparent disabled:hover:text-white sm:h-14 sm:w-14"
+    >
+      <span
+        aria-hidden
+        className="absolute inset-0 rounded-full border border-white/30 opacity-0 transition-opacity duration-300 group-hover:animate-ping group-hover:opacity-60 group-disabled:hidden"
+      />
+      <Icon
+        className={`h-4 w-4 transition-transform duration-300 ease-out ${
+          direction === "next"
+            ? "group-hover:translate-x-0.5"
+            : "group-hover:-translate-x-0.5"
+        }`}
+      />
+    </button>
   );
 }
 
@@ -273,6 +341,24 @@ function ArrowRight({ className = "" }: { className?: string }) {
     >
       <path d="M5 12h14" />
       <path d="M13 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function ArrowLeft({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M19 12H5" />
+      <path d="M11 5l-7 7 7 7" />
     </svg>
   );
 }
