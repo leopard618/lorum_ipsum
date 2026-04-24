@@ -55,6 +55,8 @@ const WHEEL_THRESHOLD = 10;
 const TOUCH_THRESHOLD = 50;
 const SCROLL_EDGE_TOLERANCE = 2;
 const EASE = "cubic-bezier(0.76, 0, 0.24, 1)";
+/** Interval (ms) for auto-rotating within an active horizontal slide. */
+const HORIZONTAL_AUTOPLAY_MS = 4000;
 
 type StepMeta = { slide: number; sub: number; label: string };
 
@@ -89,6 +91,9 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
   const lastSubRef = useRef<Record<number, number>>({});
   const scrollableRefs = useRef<(HTMLElement | null)[]>([]);
   const dockRefs = useRef<Record<number, HTMLElement | null>>({});
+  // Pause horizontal autoplay while the user is hovering or keyboard-focused
+  // inside the active horizontal slide.
+  const [horizontalHovered, setHorizontalHovered] = useState(false);
 
   const [measurements, setMeasurements] = useState<{
     viewportH: number;
@@ -119,6 +124,39 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
     const el = scrollableRefs.current[step];
     if (el) el.scrollTop = 0;
   }, [step]);
+
+  // Auto-rotate panels inside an active horizontal slide. Wraps around within
+  // the slide (last panel -> first panel) without advancing to the next slide,
+  // so vertical progression stays user-driven. Pauses on hover/focus, respects
+  // prefers-reduced-motion, and skips while another transition is cooling down.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const activeSlide = slides[current.slide];
+    if (!activeSlide || activeSlide.type !== "horizontal") return;
+    if (horizontalHovered) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const firstStepOfSlide = stepMap.findIndex((m) => m.slide === current.slide);
+    const subCount = activeSlide.panels.length;
+    if (firstStepOfSlide < 0 || subCount <= 1) return;
+
+    const id = window.setInterval(() => {
+      if (animatingRef.current) return;
+      if (typeof document !== "undefined" && document.hidden) return;
+      const cur = stepMap[stepRef.current];
+      if (!cur || cur.slide !== current.slide) return;
+      const nextSub = (cur.sub + 1) % subCount;
+      const nextStep = firstStepOfSlide + nextSub;
+      if (nextStep === stepRef.current) return;
+      animatingRef.current = true;
+      window.setTimeout(() => {
+        animatingRef.current = false;
+      }, COOLDOWN_MS);
+      setStep(nextStep);
+    }, HORIZONTAL_AUTOPLAY_MS);
+
+    return () => window.clearInterval(id);
+  }, [current.slide, current.sub, horizontalHovered, slides, stepMap]);
 
   useEffect(() => {
     const update = () => {
@@ -346,6 +384,22 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
               key={sIdx}
               className="relative h-screen w-full overflow-hidden"
               style={visualStyle}
+              onMouseEnter={active ? () => setHorizontalHovered(true) : undefined}
+              onMouseLeave={active ? () => setHorizontalHovered(false) : undefined}
+              onFocus={active ? () => setHorizontalHovered(true) : undefined}
+              onBlur={
+                active
+                  ? (e) => {
+                      if (
+                        !e.currentTarget.contains(
+                          e.relatedTarget as Node | null,
+                        )
+                      ) {
+                        setHorizontalHovered(false);
+                      }
+                    }
+                  : undefined
+              }
             >
               <div
                 className="flex h-full"
