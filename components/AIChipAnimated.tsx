@@ -259,9 +259,9 @@ export default function AIChipAnimated({
       <g className="ai-text-pulse">
         <text
           x="210"
-          y="216"
+          y="190"
           textAnchor="middle"
-          dominantBaseline="middle"
+          dominantBaseline="central"
           fontWeight={400}
           fontSize={58}
           letterSpacing={4}
