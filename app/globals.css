@@ -56,6 +56,73 @@ body {
   animation: arrow-bob 1.8s ease-in-out infinite;
 }
 
+@keyframes ind-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ind-letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes service-float {
+  0%,
+  100% {
+    transform: translateY(-10px);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+.animate-service-float {
+  animation: service-float 7s ease-in-out infinite;
+}
+
+@keyframes service-glow {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translate3d(0, -50%, 0) scale(1);
+  }
+  50% {
+    opacity: 0.42;
+    transform: translate3d(0, -50%, 0) scale(1.05);
+  }
+}
+
+.animate-service-glow {
+  animation: service-glow 6s ease-in-out infinite;
+}
+
+@keyframes service-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-service-rotate {
+  animation: service-rotate 30s linear infinite;
+}
+
 .fps-slide {
   scrollbar-width: none;
 }

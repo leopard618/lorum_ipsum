@@ -150,16 +150,23 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
       go(dir);
     };
 
+    const onAdvance = () => go(1);
+    const onRetreat = () => go(-1);
+
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("fps:advance", onAdvance);
+    window.addEventListener("fps:retreat", onRetreat);
 
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("fps:advance", onAdvance);
+      window.removeEventListener("fps:retreat", onRetreat);
     };
   }, [count]);
 
