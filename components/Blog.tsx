@@ -142,13 +142,20 @@ export default function Blog() {
           </span>
         </div>
 
-        {/* Bottom-right: Next post control. Wraps around so clicking past
-            the last post returns you to the first. */}
+        {/* Bottom-right: Prev / Next post controls. Both wrap around, so
+            clicking past either end cycles through the full post list. */}
         <div
           data-reveal
           style={{ transitionDelay: "900ms" }}
           className="absolute bottom-8 right-8 z-10 flex items-center gap-4 sm:bottom-12 sm:right-12 lg:bottom-16 lg:right-16"
         >
+          <NavCircleButton
+            direction="prev"
+            onClick={() => changePost(-1)}
+            disabled={exiting}
+            label={`Show previous blog post (${idx + 1} of ${posts.length})`}
+          />
+
           <span
             aria-hidden
             className="hidden h-px w-14 bg-white/35 sm:block"
