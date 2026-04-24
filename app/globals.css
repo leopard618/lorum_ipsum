@@ -108,6 +108,59 @@ body {
   animation: service-float-subtle 10s ease-in-out infinite;
 }
 
+@keyframes row-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.animate-row-shimmer {
+  animation: row-shimmer 4s linear infinite;
+}
+
+@keyframes border-beam-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.animate-border-beam {
+  animation: border-beam-spin 8s linear infinite;
+}
+
+@keyframes chip-beam-travel {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -108;
+  }
+}
+
+@keyframes circuit-pulse-forward {
+  from {
+    stroke-dashoffset: 30;
+  }
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+@keyframes circuit-pulse-reverse {
+  from {
+    stroke-dashoffset: -40;
+  }
+  to {
+    stroke-dashoffset: 30;
+  }
+}
+
 @keyframes service-glow {
   0%,
   100% {
@@ -168,5 +221,118 @@ body {
     transform: none !important;
     filter: none !important;
     transition: none !important;
+  }
+}
+
+/* ---------- AI chip animations (A.I Automations service panel) ---------- */
+
+@keyframes ai-border-flow {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.ai-border-beam {
+  stroke-dasharray: 14 86;
+  animation: ai-border-flow 3.6s linear infinite;
+}
+
+/* Second, dimmer beam chasing the bright one — reversed direction */
+.ai-border-beam-reverse {
+  stroke-dasharray: 6 94;
+  animation: ai-border-flow 5.2s linear infinite reverse;
+}
+
+@keyframes ai-trace-flow {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.ai-trace-pulse {
+  stroke-dasharray: 10 90;
+  animation-name: ai-trace-flow;
+  animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  animation-iteration-count: infinite;
+}
+
+@keyframes ai-text-pulse {
+  0%,
+  100% {
+    opacity: 0.93;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.ai-text-pulse {
+  animation: ai-text-pulse 2.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes ai-node-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+.ai-node-ripple {
+  animation: ai-node-ripple 2.4s ease-out infinite;
+}
+
+@keyframes ai-scanline {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(166px);
+    opacity: 0;
+  }
+}
+
+.ai-scanline {
+  animation: ai-scanline 3.8s ease-in-out infinite;
+}
+
+@keyframes ai-connector-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.ai-connector-glow {
+  animation: ai-connector-glow 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-border-beam,
+  .ai-border-beam-reverse,
+  .ai-trace-pulse,
+  .ai-text-pulse,
+  .ai-node-ripple,
+  .ai-scanline,
+  .ai-connector-glow {
+    animation: none !important;
   }
 }

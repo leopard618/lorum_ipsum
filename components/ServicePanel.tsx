@@ -1,4 +1,7 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+
+import AIChipAnimated from "./AIChipAnimated";
 
 export type Service = {
   eyebrow?: string;
@@ -8,9 +11,15 @@ export type Service = {
   image: string;
   imageAlign?: "center" | "bottom";
   imageWidth?: string;
+  imageOffsetRight?: string;
   floatVariant?: "normal" | "subtle";
   background: string;
   accent: string;
+  /**
+   * Optional custom media. When provided, renders in place of the static
+   * background image (used for A.I Automations to show an animated SVG chip).
+   */
+  renderMedia?: () => ReactNode;
 };
 
 const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
@@ -32,10 +41,12 @@ export const services: Service[] = [
       "Data-driven digital marketing strategies that boost your ROI and accelerate business growth.",
     cta: "View More",
     image: "/service-ai.png",
-    imageWidth: "46%",
+    imageWidth: "38%",
+    imageOffsetRight: "5%",
     floatVariant: "subtle",
     background: "linear-gradient(135deg, #0d0420 0%, #000000 70%)",
     accent: "rgba(150, 85, 225, 0.38)",
+    renderMedia: () => <AIChipAnimated />,
   },
   {
     title: "The Reality Warp",
@@ -84,23 +95,45 @@ export default function ServicePanel({
         style={{ background: service.accent }}
       />
 
-      {/* Image — centered inside the right half (or anchored bottom-right for VR) */}
-      <div
-        aria-hidden
-        className={`${imageContainerClasses} ${floatClass}`}
-        style={{
-          backgroundImage: `url('${service.image}')`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: imagePosition,
-          backgroundSize: "contain",
-          ...(service.imageWidth && !isBottomAligned
-            ? { maxWidth: service.imageWidth }
-            : {}),
-          ...(service.imageWidth && isBottomAligned
-            ? { backgroundSize: service.imageWidth }
-            : {}),
-        }}
-      />
+      {/* Image / media — centered inside the right half (or anchored bottom-right for VR).
+          If the service supplies renderMedia, we render that node instead of the static PNG
+          so it can run its own animations (see AIChipAnimated). */}
+      {service.renderMedia ? (
+        <div
+          aria-hidden
+          className={`${imageContainerClasses} ${floatClass} flex items-center justify-center`}
+          style={{
+            ...(service.imageWidth && !isBottomAligned
+              ? { maxWidth: service.imageWidth }
+              : {}),
+            ...(service.imageOffsetRight && !isBottomAligned
+              ? { right: service.imageOffsetRight }
+              : {}),
+          }}
+        >
+          {service.renderMedia()}
+        </div>
+      ) : (
+        <div
+          aria-hidden
+          className={`${imageContainerClasses} ${floatClass}`}
+          style={{
+            backgroundImage: `url('${service.image}')`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: imagePosition,
+            backgroundSize: "contain",
+            ...(service.imageWidth && !isBottomAligned
+              ? { maxWidth: service.imageWidth }
+              : {}),
+            ...(service.imageWidth && isBottomAligned
+              ? { backgroundSize: service.imageWidth }
+              : {}),
+            ...(service.imageOffsetRight && !isBottomAligned
+              ? { right: service.imageOffsetRight }
+              : {}),
+          }}
+        />
+      )}
 
       {/* Left dark gradient for text legibility */}
       <div
@@ -256,3 +289,4 @@ function ArrowUpRight({ className = "" }: { className?: string }) {
     </svg>
   );
 }
+

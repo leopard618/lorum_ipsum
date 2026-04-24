@@ -45,6 +45,21 @@ export default function Industries() {
 
   return (
     <section className="relative h-full w-full overflow-hidden bg-white">
+      {/* Border beam — rotating highlight that sweeps the edge */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      >
+        <div
+          className="animate-border-beam absolute left-1/2 top-1/2 h-[220%] w-[220%]"
+          style={{
+            background:
+              "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 86%, rgba(20, 40, 120, 0.35) 93%, rgba(60, 90, 200, 0.6) 96%, transparent 100%)",
+          }}
+        />
+        <div className="absolute inset-[1.5px] bg-white" />
+      </div>
+
       {/* dot pattern background */}
       <div
         aria-hidden
@@ -105,12 +120,15 @@ export default function Industries() {
             const industryIdx = pair[phase];
             const name = industries[industryIdx];
             const number = industryIdx + 1;
+            // Shimmer on outer slots only (1st and 3rd)
+            const shimmer = slotIdx !== 1;
             return (
               <IndustryRow
                 key={`${phase}-${slotIdx}`}
                 name={name}
                 number={number}
                 delay={slotIdx * 180}
+                shimmer={shimmer}
               />
             );
           })}
@@ -166,13 +184,15 @@ function IndustryRow({
   name,
   number,
   delay,
+  shimmer = false,
 }: {
   name: string;
   number: number;
   delay: number;
+  shimmer?: boolean;
 }) {
   return (
-    <div className="flex items-baseline gap-6 border-b border-black/10 py-4 sm:gap-8 sm:py-5 lg:py-6">
+    <div className="relative flex items-baseline gap-6 border-b border-black/10 py-4 sm:gap-8 sm:py-5 lg:py-6">
       <span
         className="tabular-nums text-sm font-medium text-black/40"
         style={{
@@ -194,6 +214,21 @@ function IndustryRow({
           </span>
         ))}
       </h3>
+
+      {shimmer && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-px overflow-hidden"
+        >
+          <span
+            className="animate-row-shimmer absolute inset-y-0 left-0 w-1/3"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, rgba(0,0,0,0.55), transparent)",
+            }}
+          />
+        </span>
+      )}
     </div>
   );
 }
