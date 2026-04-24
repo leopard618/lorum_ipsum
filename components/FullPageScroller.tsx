@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 export type Slide =
   | { type: "vertical"; content: React.ReactNode; label?: string }
@@ -10,6 +18,36 @@ export type Slide =
       panels: React.ReactNode[];
       labels?: string[];
     };
+
+/**
+ * Imperative controls for the mounted FullPageScroller, exposed via context
+ * so descendant UI (Intro down-arrow, Footer back-to-top, any future
+ * in-page nav) can drive the scroller directly without relying on fragile
+ * window-level custom events.
+ */
+export type FpsControls = {
+  goto: (step: number) => void;
+  advance: () => void;
+  retreat: () => void;
+  stepCount: number;
+};
+
+const FpsControlsContext = createContext<FpsControls | null>(null);
+
+export function useFpsControls(): FpsControls {
+  const ctx = useContext(FpsControlsContext);
+  if (!ctx) {
+    // Return a no-op shim so components can still render outside of a
+    // scroller (e.g. in Storybook / tests) without crashing.
+    return {
+      goto: () => {},
+      advance: () => {},
+      retreat: () => {},
+      stepCount: 0,
+    };
+  }
+  return ctx;
+}
 
 const ANIMATION_MS = 1500;
 const COOLDOWN_MS = 1600;
@@ -57,12 +95,25 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
     dockHeights: Record<number, number>;
   }>({ viewportH: 0, dockHeights: {} });
 
-  const current = stepMap[step];
+  // Guard against `step` falling outside stepMap bounds. This can happen in
+  // dev when the slide list shrinks (e.g. removing a service panel) while
+  // React Fast Refresh keeps the old `step` state. In prod it's harmless
+  // insurance — `step` should always be valid, but if it isn't we fall back
+  // to the first entry rather than crashing.
+  const current = stepMap[step] ?? stepMap[0];
+
+  // Self-heal: if `step` drifts out of range, snap it back into bounds on
+  // the next commit rather than repeatedly rendering with the fallback.
+  useEffect(() => {
+    if (step >= stepMap.length) {
+      setStep(Math.max(0, stepMap.length - 1));
+    }
+  }, [step, stepMap.length]);
 
   useEffect(() => {
     stepRef.current = step;
-    lastSubRef.current[current.slide] = current.sub;
-  }, [step, current.slide, current.sub]);
+    if (current) lastSubRef.current[current.slide] = current.sub;
+  }, [step, current]);
 
   useEffect(() => {
     const el = scrollableRefs.current[step];
@@ -83,6 +134,45 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
     return () => window.removeEventListener("resize", update);
   }, [slides]);
 
+  // Core imperative step controls, stable across renders. Exposed via
+  // context (see FpsControlsContext) so descendants like the Intro down-arrow
+  // and the Footer back-to-top button can drive the scroller directly.
+  const goto = useCallback(
+    (target: number) => {
+      if (animatingRef.current) return;
+      const clamped = Math.max(0, Math.min(count - 1, target));
+      if (clamped === stepRef.current) return;
+      animatingRef.current = true;
+      window.setTimeout(() => {
+        animatingRef.current = false;
+      }, COOLDOWN_MS);
+      setStep(clamped);
+    },
+    [count],
+  );
+
+  const go = useCallback(
+    (dir: 1 | -1) => {
+      if (animatingRef.current) return;
+      const next = stepRef.current + dir;
+      if (next < 0 || next >= count) return;
+      animatingRef.current = true;
+      window.setTimeout(() => {
+        animatingRef.current = false;
+      }, COOLDOWN_MS);
+      setStep(next);
+    },
+    [count],
+  );
+
+  const advance = useCallback(() => go(1), [go]);
+  const retreat = useCallback(() => go(-1), [go]);
+
+  const controls = useMemo<FpsControls>(
+    () => ({ goto, advance, retreat, stepCount: count }),
+    [goto, advance, retreat, count],
+  );
+
   useEffect(() => {
     const getActiveScrollEl = () => scrollableRefs.current[stepRef.current];
 
@@ -97,19 +187,6 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
         );
       }
       return el.scrollTop > SCROLL_EDGE_TOLERANCE;
-    };
-
-    const go = (dir: 1 | -1) => {
-      if (animatingRef.current) return;
-      setStep((s) => {
-        const next = s + dir;
-        if (next < 0 || next >= count) return s;
-        animatingRef.current = true;
-        window.setTimeout(() => {
-          animatingRef.current = false;
-        }, COOLDOWN_MS);
-        return next;
-      });
     };
 
     const onWheel = (e: WheelEvent) => {
@@ -131,10 +208,10 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
         go(-1);
       } else if (e.key === "Home") {
         e.preventDefault();
-        setStep(0);
+        goto(0);
       } else if (e.key === "End") {
         e.preventDefault();
-        setStep(count - 1);
+        goto(count - 1);
       }
     };
 
@@ -150,25 +227,34 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
       go(dir);
     };
 
-    const onAdvance = () => go(1);
-    const onRetreat = () => go(-1);
+    // Kept as a safety net so any legacy / external code that dispatches
+    // these window events still works alongside the context-based controls.
+    const onAdvanceEvt = () => go(1);
+    const onRetreatEvt = () => go(-1);
+    const onGotoEvt = (e: Event) => {
+      const detail = (e as CustomEvent<{ step?: number }>).detail;
+      if (!detail || typeof detail.step !== "number") return;
+      goto(detail.step);
+    };
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
-    window.addEventListener("fps:advance", onAdvance);
-    window.addEventListener("fps:retreat", onRetreat);
+    window.addEventListener("fps:advance", onAdvanceEvt);
+    window.addEventListener("fps:retreat", onRetreatEvt);
+    window.addEventListener("fps:goto", onGotoEvt as EventListener);
 
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
-      window.removeEventListener("fps:advance", onAdvance);
-      window.removeEventListener("fps:retreat", onRetreat);
+      window.removeEventListener("fps:advance", onAdvanceEvt);
+      window.removeEventListener("fps:retreat", onRetreatEvt);
+      window.removeEventListener("fps:goto", onGotoEvt as EventListener);
     };
-  }, [count]);
+  }, [count, go, goto]);
 
   const columnTransition = `transform ${ANIMATION_MS}ms ${EASE}`;
   const effectsTransition = `transform ${ANIMATION_MS}ms ${EASE}, filter ${ANIMATION_MS}ms ${EASE}, opacity ${ANIMATION_MS}ms ${EASE}`;
@@ -196,15 +282,16 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
   })();
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-black">
-      <div
-        className="h-full w-full"
-        style={{
-          transform: `translate3d(0, ${translateYPx}px, 0)`,
-          transition: columnTransition,
-          willChange: "transform",
-        }}
-      >
+    <FpsControlsContext.Provider value={controls}>
+      <div className="fixed inset-0 overflow-hidden bg-black">
+        <div
+          className="h-full w-full"
+          style={{
+            transform: `translate3d(0, ${translateYPx}px, 0)`,
+            transition: columnTransition,
+            willChange: "transform",
+          }}
+        >
         {slides.map((slide, sIdx) => {
           const active = sIdx === current.slide;
 
@@ -305,17 +392,18 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
         ))}
       </nav>
 
-      {/* scroll hint */}
-      <div
-        className={`pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.35em] text-white/55 transition-opacity duration-500 ${
-          step === 0 ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <span className="inline-flex items-center gap-3">
-          <span className="h-px w-8 bg-white/50" /> Scroll
-          <span className="h-px w-8 bg-white/50" />
-        </span>
+        {/* scroll hint */}
+        <div
+          className={`pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.35em] text-white/55 transition-opacity duration-500 ${
+            step === 0 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <span className="inline-flex items-center gap-3">
+            <span className="h-px w-8 bg-white/50" /> Scroll
+            <span className="h-px w-8 bg-white/50" />
+          </span>
+        </div>
       </div>
-    </div>
+    </FpsControlsContext.Provider>
   );
 }

@@ -157,7 +157,7 @@ export default function Industries() {
         </div>
 
         {/* Bottom area: description (left) + list + nav (right) */}
-        <div className="mt-auto flex flex-col gap-12 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+        <div className="mt-auto flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
           <DescriptionPanel industry={hoveredIndustry} />
 
           <div className="w-full lg:w-[44rem]">
@@ -246,7 +246,7 @@ function DescriptionPanel({
     <div
       data-reveal
       style={{ transitionDelay: "260ms" }}
-      className="hidden w-full max-w-md lg:block lg:max-w-sm"
+      className="hidden w-full max-w-md lg:block lg:mt-10 lg:max-w-sm"
     >
       <p className="inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-black/50">
         <span className="h-px w-8 bg-black/30" />

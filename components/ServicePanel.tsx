@@ -44,8 +44,9 @@ export const services: Service[] = [
     imageWidth: "38%",
     imageOffsetRight: "5%",
     floatVariant: "subtle",
-    background: "linear-gradient(135deg, #041028 0%, #000000 70%)",
-    accent: "rgba(85, 150, 235, 0.4)",
+    // Violet theme anchored on #8B5CF6 (Tailwind violet-500).
+    background: "linear-gradient(135deg, #1A0A30 0%, #000000 70%)",
+    accent: "rgba(139, 92, 246, 0.4)",
     renderMedia: () => <AIChipAnimated />,
   },
   {

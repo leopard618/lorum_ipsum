@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { useFpsControls } from "./FullPageScroller";
+
 export default function Footer() {
   return (
     <footer className="relative overflow-hidden bg-neutral-950 text-white">
@@ -237,16 +239,13 @@ function SocialLink({
 }
 
 function ScrollTopButton() {
+  const { goto } = useFpsControls();
   return (
     <button
       type="button"
-      onClick={() => {
-        if (typeof window !== "undefined") {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      }}
-      aria-label="Scroll to top"
-      className="group absolute right-6 top-6 z-10 grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/[0.03] text-white backdrop-blur-sm transition hover:border-white/60 hover:bg-white hover:text-black sm:right-10 sm:top-10"
+      onClick={() => goto(0)}
+      aria-label="Back to top"
+      className="group absolute right-6 top-6 z-20 grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/[0.03] text-white backdrop-blur-sm transition hover:border-white/60 hover:bg-white hover:text-black sm:right-10 sm:top-10"
     >
       <ArrowUp className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
     </button>

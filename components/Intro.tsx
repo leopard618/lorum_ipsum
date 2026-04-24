@@ -1,10 +1,14 @@
+"use client";
+
 import Link from "next/link";
 
 import AnimatedHeadline from "./AnimatedHeadline";
+import { useFpsControls } from "./FullPageScroller";
 
 const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
 
 export default function Intro() {
+  const { advance } = useFpsControls();
   return (
     <section>
       <div className="relative w-full overflow-hidden">
@@ -110,19 +114,20 @@ export default function Intro() {
             </div>
           </div>
 
-          {/* discover more */}
+          {/* discover more — advances the FullPageScroller by one step */}
           <div
             data-reveal
             style={{ transitionDelay: "1000ms" }}
             className="flex justify-end px-6 py-10 sm:px-10 lg:px-14 lg:py-14"
           >
-            <Link
-              href="#"
+            <button
+              type="button"
+              onClick={advance}
               aria-label="Discover more about our services"
               className="group relative grid h-12 w-12 flex-none place-items-center rounded-full border border-white/60 text-white transition-[transform,background-color,border-color,color] duration-300 hover:scale-110 hover:border-white hover:bg-white hover:text-black"
             >
               <ArrowDown className="h-4 w-4 animate-arrow-bob" />
-            </Link>
+            </button>
           </div>
         </div>
       </div>

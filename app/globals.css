@@ -267,10 +267,96 @@ body {
 }
 
 .ai-trace-pulse {
-  stroke-dasharray: 10 90;
+  /* Dual spark packet: 5u bright, 20u gap, 3u bright, 72u gap (pathLength = 100) */
+  stroke-dasharray: 5 20 3 72;
   animation-name: ai-trace-flow;
   animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
   animation-iteration-count: infinite;
+}
+
+@keyframes ai-aura-breathe {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.03);
+  }
+}
+
+.ai-aura-breathe {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ai-aura-breathe 4.8s ease-in-out infinite;
+}
+
+@keyframes ai-radar-pulse {
+  0% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.ai-radar-pulse {
+  animation: ai-radar-pulse 3.3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes ai-screw-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.ai-screw-ring {
+  animation: ai-screw-ring 2.8s ease-out infinite;
+}
+
+@keyframes ai-text-glitch {
+  0%,
+  93%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  94% {
+    transform: translate(1px, 0);
+    opacity: 0.55;
+  }
+  95% {
+    transform: translate(-1px, 0);
+    opacity: 1;
+  }
+  96% {
+    transform: translate(0, 1px);
+    opacity: 0.75;
+  }
+  97% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+.ai-text-glitch {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ai-text-glitch 6.5s steps(1, end) infinite;
 }
 
 @keyframes ai-text-pulse {
@@ -347,9 +433,13 @@ body {
   .ai-border-beam-reverse,
   .ai-trace-pulse,
   .ai-text-pulse,
+  .ai-text-glitch,
   .ai-node-ripple,
   .ai-scanline,
-  .ai-connector-glow {
+  .ai-connector-glow,
+  .ai-aura-breathe,
+  .ai-radar-pulse,
+  .ai-screw-ring {
     animation: none !important;
   }
 }
