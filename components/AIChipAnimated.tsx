@@ -259,14 +259,16 @@ export default function AIChipAnimated({
       <g className="ai-text-pulse">
         <text
           x="210"
-          y="222"
+          y="216"
           textAnchor="middle"
-          fontFamily="Impact, 'Haettenschweiler', 'Arial Narrow Bold', 'Oswald', sans-serif"
-          fontWeight={900}
-          fontSize={96}
-          letterSpacing={2}
+          dominantBaseline="middle"
+          fontWeight={400}
+          fontSize={58}
+          letterSpacing={4}
           fill="#ffffff"
           style={{
+            fontFamily:
+              "var(--font-pixel), 'Press Start 2P', 'VT323', 'Courier New', ui-monospace, monospace",
             filter:
               "drop-shadow(0 0 10px rgba(235,200,255,0.9)) drop-shadow(0 0 22px rgba(180,110,255,0.55))",
           }}
