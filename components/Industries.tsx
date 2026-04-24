@@ -14,9 +14,9 @@ const industries = [
 
 // Each of the 3 slots cycles between two industries: phase 0 shows [0,2,4], phase 1 shows [1,3,5].
 const SLOT_PAIRS: Array<[number, number]> = [
-  [0, 1],
-  [2, 3],
-  [4, 5],
+  [0, 3],
+  [1, 4],
+  [2, 5],
 ];
 
 // The heading's variable word cycles alongside the list.
