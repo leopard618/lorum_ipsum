@@ -1,4 +1,8 @@
-// Change these later as needed.
+"use client";
+
+import { useEffect, useState } from "react";
+
+// Six industries — the first three are shown initially, then animate to the next three.
 const industries = [
   "Finance",
   "Real Estate",
@@ -8,7 +12,37 @@ const industries = [
   "Logistics",
 ];
 
+// Each of the 3 slots cycles between two industries: phase 0 shows [0,2,4], phase 1 shows [1,3,5].
+const SLOT_PAIRS: Array<[number, number]> = [
+  [0, 1],
+  [2, 3],
+  [4, 5],
+];
+
+// The heading's variable word cycles alongside the list.
+const HEADING_WORDS = ["serve", "are into"];
+
+const CYCLE_MS = 6000;
+const EXIT_MS = 550;
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+
 export default function Industries() {
+  const [phase, setPhase] = useState(0);
+  const [exiting, setExiting] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setExiting(true);
+      window.setTimeout(() => {
+        setPhase((p) => (p + 1) % 2);
+        setExiting(false);
+      }, EXIT_MS);
+    }, CYCLE_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const currentWord = HEADING_WORDS[phase];
+
   return (
     <section className="relative h-full w-full overflow-hidden bg-white">
       {/* dot pattern background */}
@@ -32,10 +66,10 @@ export default function Industries() {
         className="pointer-events-none absolute -bottom-40 -left-40 h-[28rem] w-[28rem] rounded-full bg-neutral-900/[0.04] blur-3xl"
       />
 
-      {/* faint oversized word in backdrop */}
+      {/* faint oversized backdrop word */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-6 flex items-end justify-center select-none"
+        className="pointer-events-none absolute inset-x-0 bottom-6 flex select-none items-end justify-center"
       >
         <span
           className="text-[18vw] font-extrabold leading-[0.85] tracking-tight text-transparent"
@@ -54,27 +88,81 @@ export default function Industries() {
           </p>
           <h2 className="mt-6 text-5xl font-light leading-[1.05] tracking-tight text-black sm:text-6xl lg:text-7xl">
             Industries we{" "}
-            <span className="italic text-black/70">serve.</span>
+            <AnimatedWord word={currentWord} phase={phase} />
+            <span>.</span>
           </h2>
         </div>
 
-        {/* Grid of 6 industries */}
-        <div className="mt-auto grid grid-cols-1 gap-x-12 sm:grid-cols-2 lg:gap-x-20">
-          {industries.map((name, i) => (
-            <IndustryItem
-              key={name}
-              name={name}
-              number={i + 1}
-              delay={220 + i * 80}
-            />
-          ))}
+        {/* Three-slot industry list */}
+        <div
+          className={`mt-auto transition-all duration-500 ease-out ${
+            exiting
+              ? "-translate-y-3 opacity-0 blur-[3px]"
+              : "translate-y-0 opacity-100 blur-none"
+          }`}
+        >
+          {SLOT_PAIRS.map((pair, slotIdx) => {
+            const industryIdx = pair[phase];
+            const name = industries[industryIdx];
+            const number = industryIdx + 1;
+            return (
+              <IndustryRow
+                key={`${phase}-${slotIdx}`}
+                name={name}
+                number={number}
+                delay={slotIdx * 180}
+              />
+            );
+          })}
+        </div>
+
+        {/* Phase pagination */}
+        <div
+          data-reveal
+          style={{ transitionDelay: "400ms" }}
+          className="mt-10 flex items-center gap-4 text-xs font-medium text-black/70"
+        >
+          <span className="tabular-nums">
+            {String(phase + 1).padStart(2, "0")}
+          </span>
+          <div className="flex gap-1.5">
+            {HEADING_WORDS.map((_, i) => (
+              <span
+                key={i}
+                className={`h-[3px] rounded-full transition-all duration-500 ${
+                  phase === i ? "w-10 bg-black" : "w-5 bg-black/25"
+                }`}
+              />
+            ))}
+          </div>
+          <span className="tabular-nums text-black/40">
+            {String(HEADING_WORDS.length).padStart(2, "0")}
+          </span>
         </div>
       </div>
     </section>
   );
 }
 
-function IndustryItem({
+function AnimatedWord({ word, phase }: { word: string; phase: number }) {
+  return (
+    <span className="italic text-black/70">
+      {word.split("").map((char, i) => (
+        <span
+          key={`${phase}-${i}`}
+          className="inline-block"
+          style={{
+            animation: `ind-letter-in 700ms ${100 + i * 45}ms ${EASE} both`,
+          }}
+        >
+          {char === " " ? " " : char}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function IndustryRow({
   name,
   number,
   delay,
@@ -84,49 +172,28 @@ function IndustryItem({
   delay: number;
 }) {
   return (
-    <div
-      data-reveal
-      style={{ transitionDelay: `${delay}ms` }}
-      className="group relative flex items-baseline gap-5 border-b border-black/10 py-4 transition-colors duration-300 hover:border-black/40 sm:py-5 lg:py-6"
-    >
-      {/* hover accent line */}
+    <div className="flex items-baseline gap-6 border-b border-black/10 py-4 sm:gap-8 sm:py-5 lg:py-6">
       <span
-        aria-hidden
-        className="pointer-events-none absolute bottom-[-1px] left-0 h-[2px] w-0 bg-black transition-all duration-500 group-hover:w-full"
-      />
-
-      <span className="tabular-nums text-xs font-semibold text-black/40">
+        className="tabular-nums text-sm font-medium text-black/40"
+        style={{
+          animation: `ind-row-in 700ms ${delay}ms ${EASE} both`,
+        }}
+      >
         {String(number).padStart(2, "0")}
       </span>
-
-      <h3 className="text-3xl font-light tracking-tight text-black transition-transform duration-300 group-hover:translate-x-1 sm:text-4xl lg:text-5xl">
-        {name}
+      <h3 className="flex flex-wrap text-4xl font-light leading-none tracking-tight text-black sm:text-5xl lg:text-6xl">
+        {name.split("").map((char, i) => (
+          <span
+            key={i}
+            className="inline-block"
+            style={{
+              animation: `ind-letter-in 700ms ${delay + 120 + i * 35}ms ${EASE} both`,
+            }}
+          >
+            {char === " " ? " " : char}
+          </span>
+        ))}
       </h3>
-
-      <span
-        aria-hidden
-        className="ml-auto -translate-x-2 text-black/40 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:text-black group-hover:opacity-100"
-      >
-        <ArrowUpRight className="h-4 w-4" />
-      </span>
     </div>
-  );
-}
-
-function ArrowUpRight({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M7 17L17 7" />
-      <path d="M8 7h9v9" />
-    </svg>
   );
 }

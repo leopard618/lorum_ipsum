@@ -94,6 +94,20 @@ body {
   animation: service-float 7s ease-in-out infinite;
 }
 
+@keyframes service-float-subtle {
+  0%,
+  100% {
+    transform: translateY(-4px);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+.animate-service-float-subtle {
+  animation: service-float-subtle 10s ease-in-out infinite;
+}
+
 @keyframes service-glow {
   0%,
   100% {

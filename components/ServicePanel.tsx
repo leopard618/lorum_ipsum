@@ -8,6 +8,7 @@ export type Service = {
   image: string;
   imageAlign?: "center" | "bottom";
   imageWidth?: string;
+  floatVariant?: "normal" | "subtle";
   background: string;
   accent: string;
 };
@@ -32,6 +33,7 @@ export const services: Service[] = [
     cta: "View More",
     image: "/service-ai.png",
     imageWidth: "46%",
+    floatVariant: "subtle",
     background: "linear-gradient(135deg, #0d0420 0%, #000000 70%)",
     accent: "rgba(150, 85, 225, 0.38)",
   },
@@ -43,6 +45,7 @@ export const services: Service[] = [
     image: "/service-vr.png",
     imageAlign: "bottom",
     imageWidth: "60%",
+    floatVariant: "subtle",
     background: "linear-gradient(135deg, #180625 0%, #05000d 70%)",
     accent: "rgba(215, 85, 170, 0.35)",
   },
@@ -57,36 +60,49 @@ export default function ServicePanel({
   index?: number;
   total?: number;
 }) {
-  const imagePosition =
-    service.imageAlign === "bottom" ? "bottom right" : "center right";
-  const imageWidthClass = service.imageWidth ? "" : "md:w-[58%] lg:w-[54%]";
+  const isBottomAligned = service.imageAlign === "bottom";
+  const floatClass =
+    service.floatVariant === "subtle"
+      ? "animate-service-float-subtle"
+      : "animate-service-float";
+
+  const imageContainerClasses = isBottomAligned
+    ? "pointer-events-none absolute inset-0"
+    : "pointer-events-none absolute inset-y-0 right-0 w-full md:w-[50%]";
+
+  const imagePosition = isBottomAligned ? "bottom right" : "center";
 
   return (
     <div
       className="relative flex h-full w-full items-center overflow-hidden"
       style={{ background: service.background }}
     >
-      {/* Single soft ambient glow behind image */}
+      {/* Ambient glow — centered at 75% across, behind the image */}
       <div
         aria-hidden
-        className="pointer-events-none absolute right-[8%] top-1/2 h-[72vh] w-[72vh] -translate-y-1/2 rounded-full blur-[110px]"
+        className="pointer-events-none absolute left-[75%] top-1/2 h-[72vh] w-[72vh] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[110px]"
         style={{ background: service.accent }}
       />
 
-      {/* Main image with gentle float */}
+      {/* Image — centered inside the right half (or anchored bottom-right for VR) */}
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-y-0 right-0 w-full animate-service-float ${imageWidthClass}`}
+        className={`${imageContainerClasses} ${floatClass}`}
         style={{
           backgroundImage: `url('${service.image}')`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: imagePosition,
           backgroundSize: "contain",
-          ...(service.imageWidth ? { maxWidth: service.imageWidth } : {}),
+          ...(service.imageWidth && !isBottomAligned
+            ? { maxWidth: service.imageWidth }
+            : {}),
+          ...(service.imageWidth && isBottomAligned
+            ? { backgroundSize: service.imageWidth }
+            : {}),
         }}
       />
 
-      {/* Left gradient for text legibility */}
+      {/* Left dark gradient for text legibility */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black via-black/75 to-transparent md:w-[60%] md:via-black/35 md:to-transparent"
@@ -154,7 +170,7 @@ export default function ServicePanel({
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
       />
 
-      {/* Content */}
+      {/* Content — left-aligned */}
       <div className="relative z-10 w-full max-w-xl px-8 sm:px-14 lg:px-28">
         <div data-reveal style={{ transitionDelay: "80ms" }}>
           <div className="inline-flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/60">
@@ -184,7 +200,6 @@ export default function ServicePanel({
           {service.title}
         </h2>
 
-        {/* Accent line under title */}
         <div
           aria-hidden
           data-reveal
