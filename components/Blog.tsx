@@ -142,8 +142,8 @@ export default function Blog() {
           </span>
         </div>
 
-        {/* Bottom-right: Previous / Next post controls. Both wrap around
-            (idx == 0 with "prev" jumps to the last post, and vice versa). */}
+        {/* Bottom-right: Next post control. Wraps around so clicking past
+            the last post returns you to the first. */}
         <div
           data-reveal
           style={{ transitionDelay: "900ms" }}
@@ -151,18 +151,12 @@ export default function Blog() {
         >
           <span
             aria-hidden
-            className="hidden h-px w-10 bg-white/35 sm:block"
+            className="hidden h-px w-14 bg-white/35 sm:block"
           />
           <span className="hidden text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70 sm:block">
             Next Blog
           </span>
 
-          <NavCircleButton
-            direction="prev"
-            onClick={() => changePost(-1)}
-            disabled={exiting}
-            label={`Show previous blog post (${idx + 1} of ${posts.length})`}
-          />
           <NavCircleButton
             direction="next"
             onClick={() => changePost(1)}
