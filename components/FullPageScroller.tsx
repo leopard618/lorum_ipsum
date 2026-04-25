@@ -239,7 +239,17 @@ export default function FullPageScroller({
       return el.scrollTop > SCROLL_EDGE_TOLERANCE;
     };
 
+    // True when the event came from inside an element that opted out of
+    // section navigation (currently: the global menu overlay). Lets the
+    // overlay handle its own scrolling/swiping without us hijacking the
+    // gesture and jumping to the next slide.
+    const isOverlayEvent = (target: EventTarget | null) => {
+      const el = target as Element | null;
+      return !!el?.closest?.("[data-menu-overlay]");
+    };
+
     const onWheel = (e: WheelEvent) => {
+      if (isOverlayEvent(e.target)) return;
       if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) return;
       const dir: 1 | -1 = e.deltaY > 0 ? 1 : -1;
       if (canConsumeDirection(dir)) return;
@@ -248,6 +258,7 @@ export default function FullPageScroller({
     };
 
     const onKey = (e: KeyboardEvent) => {
+      if (isOverlayEvent(e.target)) return;
       if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) {
         if (canConsumeDirection(1)) return;
         e.preventDefault();
@@ -265,10 +276,21 @@ export default function FullPageScroller({
       }
     };
 
+    // Touch swipes inside the menu must not be interpreted as a section
+    // swipe. We latch the "started in overlay" decision at touchstart so a
+    // gesture that begins in the menu and ends elsewhere (e.g. user drags
+    // out) still gets ignored.
+    let touchStartedInOverlay = false;
+
     const onTouchStart = (e: TouchEvent) => {
+      touchStartedInOverlay = isOverlayEvent(e.target);
       touchStartYRef.current = e.touches[0]?.clientY ?? 0;
     };
     const onTouchEnd = (e: TouchEvent) => {
+      if (touchStartedInOverlay) {
+        touchStartedInOverlay = false;
+        return;
+      }
       const endY = e.changedTouches[0]?.clientY ?? 0;
       const dy = touchStartYRef.current - endY;
       if (Math.abs(dy) < TOUCH_THRESHOLD) return;
@@ -458,9 +480,11 @@ export default function FullPageScroller({
         ))}
       </nav>
 
-        {/* scroll hint */}
+        {/* scroll hint. Lifted on phones so it clears the mobile browser's
+            bottom address-bar / system nav; reverts to the original tight
+            placement at sm+. */}
         <div
-          className={`pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.35em] text-white/55 transition-opacity duration-500 ${
+          className={`pointer-events-none fixed bottom-20 left-1/2 z-50 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.35em] text-white/55 transition-opacity duration-500 sm:bottom-6 ${
             step === 0 ? "opacity-100" : "opacity-0"
           }`}
         >

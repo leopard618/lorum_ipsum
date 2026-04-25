@@ -154,7 +154,10 @@ export default function Industries() {
         </span>
       </div>
 
-      <div className="relative z-10 flex h-full flex-col p-6 sm:p-10 md:p-14 lg:p-20">
+      {/* Larger bottom padding on phones lifts the list + prev/next pager
+          above the mobile browser's address-bar / system nav. Desktop keeps
+          its symmetric padding. */}
+      <div className="relative z-10 flex h-full flex-col p-6 pb-24 sm:p-10 md:p-14 lg:p-20">
         {/* Header */}
         <div data-reveal style={{ transitionDelay: "100ms" }}>
           <p className="inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-black/50">

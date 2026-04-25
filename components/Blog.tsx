@@ -131,25 +131,26 @@ export default function Blog() {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
         />
 
-        {/* Top-right section marker to match the rest of the site */}
+        {/* Top-left section marker. Mirrors ServicePanel — kept on the
+            left so the global menu trigger (top-right) has clear space. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute right-8 top-8 hidden items-center gap-3 lg:flex"
+          className="pointer-events-none absolute left-8 top-8 hidden items-center gap-3 lg:flex"
         >
-          <span className="h-px w-10 bg-white/25" />
           <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/50">
             Blog · {new Date().getFullYear()}
           </span>
+          <span className="h-px w-10 bg-white/25" />
         </div>
 
         {/* Bottom-right: Prev / Next post controls. Both wrap around, so
             clicking past either end cycles through the full post list. On
-            phones we tighten the spacing and pull the cluster a touch in
-            from the corner so it can't collide with the pagination pills. */}
+            phones the cluster sits well above the bottom edge so the
+            mobile browser's URL bar can't cover it. */}
         <div
           data-reveal
           style={{ transitionDelay: "900ms" }}
-          className="absolute bottom-6 right-6 z-10 flex items-center gap-2 sm:bottom-12 sm:right-12 sm:gap-4 lg:bottom-16 lg:right-16"
+          className="absolute bottom-20 right-6 z-10 flex items-center gap-2 sm:bottom-12 sm:right-12 sm:gap-4 lg:bottom-16 lg:right-16"
         >
           <NavCircleButton
             direction="prev"
@@ -174,10 +175,10 @@ export default function Blog() {
           />
         </div>
 
-        {/* Content anchored bottom-left — editorial "poster" layout. We keep
-            the bottom padding generous on phones so the copy clears the
-            Prev/Next nav cluster sitting at the lower-right corner. */}
-        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-24 sm:p-12 lg:p-16">
+        {/* Content anchored bottom-left — editorial "poster" layout. The
+            mobile bottom padding clears both the Prev/Next nav cluster and
+            the browser address-bar; sm+ collapses back to symmetric padding. */}
+        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-36 sm:p-12 lg:p-16">
           <div className="max-w-2xl">
             {/* Per-click swap container: slides out, post index changes
                 while invisible, then slides back in with the new copy. */}

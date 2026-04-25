@@ -73,7 +73,8 @@ export default function MenuOverlay({
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         aria-controls="site-menu-panel"
-        className="fixed right-4 top-4 z-[70] grid h-11 w-11 place-items-center rounded-full border border-white/30 bg-black/40 text-white backdrop-blur-md transition hover:scale-105 hover:border-white/70 hover:bg-white hover:text-black sm:right-6 sm:top-6 sm:h-12 sm:w-12"
+        data-menu-overlay
+        className="fixed right-4 top-4 z-[70] grid h-11 w-11 place-items-center rounded-full border border-white/30 bg-black/40 text-white backdrop-blur-md transition-colors duration-200 hover:border-white/70 hover:bg-white hover:text-black sm:right-6 sm:top-6 sm:h-12 sm:w-12"
       >
         <span className="relative h-3 w-5">
           <span
@@ -101,23 +102,31 @@ export default function MenuOverlay({
         </span>
       </button>
 
-      {/* Backdrop — clicking it closes the menu */}
+      {/* Backdrop — clicking it closes the menu. Plain dark overlay (no
+          backdrop-blur) so the open animation stays at 60fps even on
+          modest GPUs; the slide-in panel itself provides the focus shift. */}
       <div
         aria-hidden
+        data-menu-overlay
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 z-[55] bg-black/70 backdrop-blur-sm transition-opacity duration-500 ${
+        className={`fixed inset-0 z-[55] bg-black/80 transition-opacity duration-300 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />
 
-      {/* Slide-in panel */}
+      {/* Slide-in panel. data-menu-overlay lets FullPageScroller detect
+          scrolls / swipes that originate inside the menu and skip its
+          section-change handling, so dragging the menu's content doesn't
+          accidentally jump to the next page section. */}
       <aside
         id="site-menu-panel"
+        data-menu-overlay
         role="dialog"
         aria-modal="true"
         aria-label="Site navigation"
         aria-hidden={!open}
-        className={`fixed right-0 top-0 z-[60] flex h-full w-full max-w-md flex-col overflow-y-auto bg-gradient-to-br from-neutral-950 via-neutral-950 to-[#1A0A30] shadow-[-20px_0_60px_rgba(0,0,0,0.45)] transition-transform duration-500 ease-out sm:max-w-lg ${
+        style={{ willChange: "transform" }}
+        className={`fixed right-0 top-0 z-[60] flex h-full w-full max-w-md transform-gpu flex-col overflow-y-auto overscroll-contain bg-gradient-to-br from-neutral-950 via-neutral-950 to-[#1A0A30] shadow-[-12px_0_30px_rgba(0,0,0,0.35)] transition-transform duration-[420ms] ease-out sm:max-w-lg ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -140,11 +149,18 @@ export default function MenuOverlay({
                 <li
                   key={item.label}
                   style={{
+                    // Shorter duration + tighter stagger keeps the open feel
+                    // snappy. willChange + translate3d push each row onto its
+                    // own compositor layer so the browser doesn't repaint the
+                    // panel for every frame of the cascade.
                     transition:
-                      "opacity 600ms ease-out, transform 600ms ease-out",
-                    transitionDelay: open ? `${120 + i * 70}ms` : "0ms",
+                      "opacity 320ms ease-out, transform 320ms ease-out",
+                    transitionDelay: open ? `${80 + i * 45}ms` : "0ms",
                     opacity: open ? 1 : 0,
-                    transform: open ? "translateX(0)" : "translateX(24px)",
+                    transform: open
+                      ? "translate3d(0,0,0)"
+                      : "translate3d(20px,0,0)",
+                    willChange: "transform, opacity",
                   }}
                 >
                   <button
@@ -181,10 +197,16 @@ export default function MenuOverlay({
           <div
             className="mt-8 space-y-6"
             style={{
-              transition: "opacity 600ms ease-out, transform 600ms ease-out",
-              transitionDelay: open ? `${120 + items.length * 70 + 80}ms` : "0ms",
+              transition:
+                "opacity 320ms ease-out, transform 320ms ease-out",
+              transitionDelay: open
+                ? `${80 + items.length * 45 + 60}ms`
+                : "0ms",
               opacity: open ? 1 : 0,
-              transform: open ? "translateY(0)" : "translateY(12px)",
+              transform: open
+                ? "translate3d(0,0,0)"
+                : "translate3d(0,12px,0)",
+              willChange: "transform, opacity",
             }}
           >
             <Link

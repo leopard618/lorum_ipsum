@@ -148,11 +148,13 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom bar */}
+      {/* Bottom bar. Extra `pb-24` on phones lifts the social icon row
+          above the mobile browser's URL / system nav bar; from sm+ we drop
+          back to the original symmetric `py-8`. */}
       <div
         data-reveal
         style={{ transitionDelay: "300ms" }}
-        className="relative z-[1] mx-auto mt-8 flex max-w-7xl flex-col items-center gap-5 border-t border-white/10 px-6 py-6 sm:mt-10 sm:flex-row sm:justify-between sm:gap-6 sm:px-12 sm:py-8 lg:px-16"
+        className="relative z-[1] mx-auto mt-8 flex max-w-7xl flex-col items-center gap-5 border-t border-white/10 px-6 pb-24 pt-6 sm:mt-10 sm:flex-row sm:justify-between sm:gap-6 sm:px-12 sm:py-8 lg:px-16"
       >
         <div className="flex items-center gap-3">
           <SocialLink href="#" label="X">

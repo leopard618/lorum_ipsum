@@ -83,11 +83,13 @@ export default function Intro() {
             </div>
           </div>
 
-          {/* discover more — advances the FullPageScroller by one step */}
+          {/* discover more — advances the FullPageScroller by one step.
+              Extra bottom padding on phones keeps the down-arrow above the
+              browser's address-bar / system nav. */}
           <div
             data-reveal
             style={{ transitionDelay: "1000ms" }}
-            className="flex justify-end px-6 py-10 sm:px-10 lg:px-14 lg:py-14"
+            className="flex justify-end px-6 pb-24 pt-6 sm:px-10 sm:py-10 lg:px-14 lg:py-14"
           >
             <button
               type="button"

@@ -11,6 +11,12 @@ export type Service = {
   image: string;
   imageAlign?: "center" | "bottom";
   imageWidth?: string;
+  /**
+   * Optional override for the image width/background-size on phones.
+   * Lets us scale a hero photo up on small screens (where it competes
+   * with the headline) without changing the desktop composition.
+   */
+  mobileImageWidth?: string;
   imageOffsetRight?: string;
   floatVariant?: "normal" | "subtle";
   background: string;
@@ -27,8 +33,11 @@ const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='h
 export const services: Service[] = [
   {
     title: "Blockchain Experts",
+    // Non-breaking hyphens (\u2011) keep compound technical terms like
+    // "next-generation" and "high-performance" together so the wrap engine
+    // can't split them across lines mid-word.
     description:
-      "Transform your operations with next-generation blockchain architecture. From smart contracts to customized dApps, we build scalable decentralized ecosystems that fuel efficiency and turn your visionary ideas into secure, high-performance digital reality.",
+      "Future-proof your business with next\u2011generation blockchain architecture. From smart contracts to customized dApps, we build scalable decentralized ecosystems that fuel efficiency and turn your visionary ideas into secure, high\u2011performance digital reality.",
     cta: "Learn More",
     image: "/service-blockchain.png",
     background: "linear-gradient(135deg, #030512 0%, #000000 70%)",
@@ -56,6 +65,10 @@ export const services: Service[] = [
     image: "/service-vr.png",
     imageAlign: "bottom",
     imageWidth: "60%",
+    // On phones the hero composition has more vertical room to give the
+    // photo, and the headline takes the full top half on its own — so we
+    // scale the VR portrait up to read as a true hero, not a corner accent.
+    mobileImageWidth: "94%",
     floatVariant: "subtle",
     background: "linear-gradient(135deg, #180625 0%, #05000d 70%)",
     accent: "rgba(215, 85, 170, 0.35)",
@@ -99,34 +112,53 @@ export default function ServicePanel({
           If the service supplies renderMedia, we render that node instead of the static PNG
           so it can run its own animations (see AIChipAnimated). */}
       {service.renderMedia ? (
+        // On phones the chip floats centered as a hero accent (the dark gradient
+        // on top keeps the headline readable). From md+ we restore the
+        // data-driven, right-anchored placement using the service's
+        // imageWidth / imageOffsetRight (passed as CSS vars so Tailwind's
+        // arbitrary values can resolve them at responsive breakpoints).
         <div
           aria-hidden
-          className={`${imageContainerClasses} ${floatClass} flex items-center justify-center`}
+          className={`${floatClass} pointer-events-none absolute inset-y-0 left-1/2 flex w-[62%] max-w-[180px] -translate-x-1/2 items-center justify-center md:left-auto md:right-[var(--media-right,0%)] md:w-[50%] md:max-w-[var(--media-w,100%)] md:translate-x-0`}
           style={{
             ...(service.imageWidth && !isBottomAligned
-              ? { maxWidth: service.imageWidth }
+              ? { ["--media-w" as string]: service.imageWidth }
               : {}),
             ...(service.imageOffsetRight && !isBottomAligned
-              ? { right: service.imageOffsetRight }
+              ? { ["--media-right" as string]: service.imageOffsetRight }
               : {}),
           }}
         >
           {service.renderMedia()}
         </div>
       ) : (
+        // Bottom-aligned hero photos can opt into a responsive background-
+        // size by supplying both `imageWidth` and `mobileImageWidth`. The
+        // values flow in as CSS vars so Tailwind's arbitrary-length classes
+        // can pick the right one per breakpoint without a JS resize watcher.
         <div
           aria-hidden
-          className={`${imageContainerClasses} ${floatClass}`}
+          className={`${imageContainerClasses} ${floatClass} ${
+            isBottomAligned && service.imageWidth
+              ? "bg-[length:var(--bg-w-mobile,60%)] md:bg-[length:var(--bg-w-desktop,60%)]"
+              : ""
+          }`}
           style={{
             backgroundImage: `url('${service.image}')`,
             backgroundRepeat: "no-repeat",
             backgroundPosition: imagePosition,
-            backgroundSize: "contain",
+            ...(!(isBottomAligned && service.imageWidth)
+              ? { backgroundSize: "contain" }
+              : {}),
             ...(service.imageWidth && !isBottomAligned
               ? { maxWidth: service.imageWidth }
               : {}),
             ...(service.imageWidth && isBottomAligned
-              ? { backgroundSize: service.imageWidth }
+              ? {
+                  ["--bg-w-mobile" as string]:
+                    service.mobileImageWidth ?? service.imageWidth,
+                  ["--bg-w-desktop" as string]: service.imageWidth,
+                }
               : {}),
             ...(service.imageOffsetRight && !isBottomAligned
               ? { right: service.imageOffsetRight }
@@ -171,15 +203,17 @@ export default function ServicePanel({
         <span className="h-20 w-px bg-white/20" />
       </div>
 
-      {/* Top-right corner marker */}
+      {/* Top-left corner marker. Lives on the left so the global menu
+          trigger (top-right) has clear space and never overlaps the year
+          tag. The hairline trails outward to the right for visual balance. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute right-8 top-8 hidden items-center gap-3 lg:flex"
+        className="pointer-events-none absolute left-8 top-8 hidden items-center gap-3 lg:flex"
       >
-        <span className="h-px w-10 bg-white/25" />
         <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/50">
           LI · {new Date().getFullYear()}
         </span>
+        <span className="h-px w-10 bg-white/25" />
       </div>
 
       {/* Bottom-left: pulsing accent + counter */}
@@ -205,8 +239,10 @@ export default function ServicePanel({
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
       />
 
-      {/* Content — left-aligned */}
-      <div className="relative z-10 w-full max-w-xl px-8 sm:px-14 lg:px-28">
+      {/* Content — left-aligned. Widened from max-w-xl/lg:px-28 so the
+          description paragraph below has room to span longer line lengths
+          rather than wrapping into a tall narrow block. */}
+      <div className="relative z-10 w-full max-w-2xl px-8 sm:px-14 lg:px-20">
         <div data-reveal style={{ transitionDelay: "80ms" }}>
           <div className="inline-flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/60">
             <span className="tabular-nums text-white/85">
@@ -248,7 +284,7 @@ export default function ServicePanel({
         <p
           data-reveal
           style={{ transitionDelay: "660ms" }}
-          className="mt-7 max-w-md text-[15px] leading-relaxed text-white/65"
+          className="mt-7 max-w-xl text-[15px] leading-relaxed text-white/65 sm:max-w-2xl"
         >
           {service.description}
         </p>
