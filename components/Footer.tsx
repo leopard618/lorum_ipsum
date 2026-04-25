@@ -4,7 +4,16 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-neutral-950 text-white">
+    // `flex min-h-full flex-col` makes the footer at least fill the
+    // dock slide (which now publishes an explicit `height: slideHeight`,
+    // so the `min-h-full` percentage actually resolves) but still allows
+    // it to grow if content overflows on short viewports — the dock
+    // section is `overflow-y-auto` so the user can scroll within. With
+    // this chain in place the bottom bar's `mt-auto` pins the social
+    // row to the bottom edge of the visible viewport on every
+    // breakpoint, killing the "black gap" the client called out under
+    // the LORUM IPSUM watermark.
+    <footer className="relative flex min-h-full flex-col overflow-hidden bg-neutral-950 text-white">
       {/* top accent line */}
       <div
         aria-hidden
@@ -32,7 +41,7 @@ export default function Footer() {
         }}
       />
 
-      <div className="relative z-[1] mx-auto max-w-7xl px-6 pt-16 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
+      <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-10 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
         {/* top grid */}
         <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Newsletter */}
@@ -129,7 +138,7 @@ export default function Footer() {
         <div
           data-reveal
           style={{ transitionDelay: "150ms" }}
-          className="mt-12 border-t border-white/10 pt-8 sm:mt-20 sm:pt-14"
+          className="mt-6 border-t border-white/10 pt-6 sm:mt-20 sm:pt-14"
         >
           <div className="group relative">
             <div
@@ -148,13 +157,18 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom bar. Extra `pb-24` on phones lifts the social icon row
-          above the mobile browser's URL / system nav bar; from sm+ we drop
-          back to the original symmetric `py-8`. */}
+      {/* Bottom bar. `mt-auto` is what actually pins this row to the
+          bottom of the slide — combined with the parent footer's flex
+          column it eats whatever vertical room is left over after the
+          main content, so the social icons + copyright always render
+          at the very bottom of the visible viewport. The mobile bottom
+          padding can stay small (`pb-6`) because the slide height is
+          already measured to *exclude* the browser's URL bar / Android
+          nav, so there's nothing to clear. */}
       <div
         data-reveal
         style={{ transitionDelay: "300ms" }}
-        className="relative z-[1] mx-auto mt-8 flex max-w-7xl flex-col items-center gap-5 border-t border-white/10 px-6 pb-24 pt-6 sm:mt-10 sm:flex-row sm:justify-between sm:gap-6 sm:px-12 sm:py-8 lg:px-16"
+        className="relative z-[1] mx-auto mt-auto flex w-full max-w-7xl flex-col items-center gap-5 border-t border-white/10 px-6 pb-6 pt-6 sm:flex-row sm:justify-between sm:gap-6 sm:px-12 sm:py-8 lg:px-16"
       >
         <div className="flex items-center gap-3">
           <SocialLink href="#" label="X">

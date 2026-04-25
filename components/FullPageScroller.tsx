@@ -50,12 +50,15 @@ export function useFpsControls(): FpsControls {
   return ctx;
 }
 
-const ANIMATION_MS = 1500;
+const ANIMATION_MS = 1100;
 /** Cooldown applied to step changes. Matched to the visual animation so
  *  manual input is unblocked the moment the slide finishes moving. */
 const COOLDOWN_MS = ANIMATION_MS;
 const WHEEL_THRESHOLD = 10;
-const TOUCH_THRESHOLD = 50;
+/** Lower than the original 50px so a quick flick on a real phone (where
+ *  swipes tend to cover ~30-60 vertical pixels) actually triggers a
+ *  section change instead of being silently ignored. */
+const TOUCH_THRESHOLD = 32;
 const SCROLL_EDGE_TOLERANCE = 2;
 const EASE = "cubic-bezier(0.76, 0, 0.24, 1)";
 /** Interval (ms) for auto-rotating within an active horizontal slide. */
@@ -105,6 +108,14 @@ export default function FullPageScroller({
   const [step, setStep] = useState(0);
   const stepRef = useRef(0);
   const animatingRef = useRef(false);
+  /** Direction of the in-flight animation. Lets an opposite-direction
+   *  input interrupt the cooldown so a user who scrolls down and then
+   *  immediately wants to come back up isn't locked out for 1.1s — that
+   *  was the "I can't scroll up once I scroll down" bug. Same-direction
+   *  inputs are still dropped to prevent wheel ticks from overshooting
+   *  by a section per tick. */
+  const animatingDirRef = useRef<1 | -1 | 0>(0);
+  const animatingTimeoutRef = useRef<number | null>(null);
   const touchStartYRef = useRef(0);
   const lastSubRef = useRef<Record<number, number>>({});
   const scrollableRefs = useRef<(HTMLElement | null)[]>([]);
@@ -178,8 +189,13 @@ export default function FullPageScroller({
       const nextStep = firstStepOfSlide + nextSub;
       if (nextStep === stepRef.current) return;
       animatingRef.current = true;
-      window.setTimeout(() => {
+      animatingDirRef.current = 1;
+      if (animatingTimeoutRef.current !== null)
+        window.clearTimeout(animatingTimeoutRef.current);
+      animatingTimeoutRef.current = window.setTimeout(() => {
         animatingRef.current = false;
+        animatingDirRef.current = 0;
+        animatingTimeoutRef.current = null;
       }, COOLDOWN_MS);
       setStep(nextStep);
     }, HORIZONTAL_AUTOPLAY_MS);
@@ -222,41 +238,53 @@ export default function FullPageScroller({
   // Core imperative step controls, stable across renders. Exposed via
   // context (see FpsControlsContext) so descendants like the Intro down-arrow
   // and the Footer back-to-top button can drive the scroller directly.
+  // Helper: arm the cooldown for an in-flight section change. Tracking
+  // direction lets us let an opposite-direction input interrupt (see go).
+  const armCooldown = useCallback((dir: 1 | -1 | 0) => {
+    animatingRef.current = true;
+    animatingDirRef.current = dir;
+    if (animatingTimeoutRef.current !== null)
+      window.clearTimeout(animatingTimeoutRef.current);
+    animatingTimeoutRef.current = window.setTimeout(() => {
+      animatingRef.current = false;
+      animatingDirRef.current = 0;
+      animatingTimeoutRef.current = null;
+    }, COOLDOWN_MS);
+  }, []);
+
   const goto = useCallback(
     (target: number) => {
       lastInteractionRef.current = Date.now();
       if (animatingRef.current) return;
       const clamped = Math.max(0, Math.min(count - 1, target));
       if (clamped === stepRef.current) return;
-      animatingRef.current = true;
-      window.setTimeout(() => {
-        animatingRef.current = false;
-      }, COOLDOWN_MS);
+      armCooldown(0);
       setStep(clamped);
     },
-    [count],
+    [count, armCooldown],
   );
 
   const go = useCallback(
     (dir: 1 | -1) => {
       lastInteractionRef.current = Date.now();
-      // Drop input during the in-flight animation. We deliberately do NOT
-      // queue inputs here — wheel ticks and trackpad gestures fire many
-      // events per real user action, so queuing would silently overshoot
-      // by one section every time. The pause-on-interaction guard above
-      // means the autoplay won't claim this cooldown out from under the
-      // user, so the next scroll/swipe lands cleanly the moment the
-      // current animation settles.
-      if (animatingRef.current) return;
+      // Same-direction inputs during the cooldown are dropped — wheel
+      // ticks and trackpad gestures fire many events per real user
+      // action, so queuing them would silently overshoot by a section
+      // per tick.
+      //
+      // *Opposite*-direction inputs interrupt the in-flight animation:
+      // when the user scrolls down and immediately wants to come back
+      // up, we'd otherwise lock them out for the full cooldown — which
+      // reads to the client as "I can't scroll up once I scroll down".
+      // Reversing mid-flight feels right because the user has clearly
+      // changed their mind.
+      if (animatingRef.current && animatingDirRef.current === dir) return;
       const next = stepRef.current + dir;
       if (next < 0 || next >= count) return;
-      animatingRef.current = true;
-      window.setTimeout(() => {
-        animatingRef.current = false;
-      }, COOLDOWN_MS);
+      armCooldown(dir);
       setStep(next);
     },
-    [count],
+    [count, armCooldown],
   );
 
   const advance = useCallback(() => go(1), [go]);
@@ -460,9 +488,22 @@ export default function FullPageScroller({
                 }}
                 data-slide-active={active}
                 className="fps-slide relative w-full overflow-y-auto overflow-x-hidden"
+                // Dock now publishes an explicit slide-height (was
+                // `maxHeight: slideHeight`). The previous `maxHeight` left
+                // the dock section sized to its content on short footers
+                // and clamped to the viewport on tall ones — but on real
+                // mobile devices the Footer's content runs taller than
+                // the visible viewport, so the section got clamped, the
+                // social bar at the end of flow got pushed off the
+                // bottom, and the empty area below it read as a "black
+                // gap" (the FullPageScroller's `bg-black` showing
+                // through). With `height: slideHeight` the dock is
+                // *always* exactly the visible viewport, so the inner
+                // Footer's `min-h-full` chain resolves and its
+                // `mt-auto` social bar pins cleanly to the bottom edge.
                 style={{
                   ...visualStyle,
-                  maxHeight: slideHeight,
+                  height: slideHeight,
                 }}
               >
                 {slide.content}

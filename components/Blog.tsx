@@ -101,7 +101,11 @@ export default function Blog() {
   };
 
   return (
-    <section className="h-full w-full">
+    // `absolute inset-0` (instead of `h-full`) so Blog stretches to fill
+    // its slide directly off the FullPageScroller's `relative` wrapper.
+    // Same defensive pattern Intro / Industries use to avoid the
+    // h-full percentage chain collapsing on certain desktops.
+    <section className="absolute inset-0">
       <div className="relative h-full w-full overflow-hidden">
         {/* Layered background images — only the active one is opaque, the
             rest fade out. Gives a smooth crossfade when `idx` advances

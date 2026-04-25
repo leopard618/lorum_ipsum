@@ -10,8 +10,15 @@ const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='h
 export default function Intro() {
   const { advance } = useFpsControls();
   return (
-    <section>
-      <div className="relative w-full overflow-hidden">
+    // `absolute inset-0` makes Intro stretch to fill its slide directly off
+    // the FullPageScroller's `relative` wrapper, *without* relying on the
+    // `h-full` percentage chain to propagate (which we hit edge cases for
+    // on certain desktops where the inner `flex-1` hero collapsed and left
+    // a black band — the FullPageScroller's `bg-black` showing through —
+    // at the bottom of section 1). With an absolute fill the inner
+    // `h-full` chain has a definite parent height and resolves cleanly.
+    <section className="absolute inset-0">
+      <div className="relative h-full w-full overflow-hidden">
         {/* mesh gradient */}
         <div
           aria-hidden
@@ -43,13 +50,13 @@ export default function Intro() {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent"
         />
 
-        {/* content. `min-h-full` (not `min-h-screen`) so the column matches
-            the parent slide's measured visible-viewport height — using
-            `100vh` on real mobile devices makes this column TALLER than
-            the visible area (because the URL bar's space is included),
-            which leaves a black band of the previous section bleeding in
-            at the top after every page transition. */}
-        <div className="relative z-10 flex min-h-full flex-col">
+        {/* Content fills the slide's measured visible-viewport height (the
+            chain is: FullPageScroller's section -> Intro's <section> -> this
+            wrapper, all `h-full`). `100vh` on real mobile devices is taller
+            than the visible area because it counts the URL-bar space, which
+            previously bled the prior section in at the top after each page
+            transition — using the measured height avoids that. */}
+        <div className="relative z-10 flex h-full flex-col">
           {/* header — just the wordmark; navigation + Schedule call now
               live in the global MenuOverlay (see app/page.tsx). The right
               edge is reserved for the menu hamburger trigger, which is

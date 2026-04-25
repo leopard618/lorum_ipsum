@@ -49,12 +49,12 @@ export const services: Service[] = [
       "Data-driven digital marketing strategies that boost your ROI and accelerate business growth.",
     cta: "View More",
     image: "/service-ai.png",
-    // Chip occupies ~55% of the panel on desktop. The SVG's
-    // `preserveAspectRatio="xMidYMid meet"` makes it square, so the rendered
-    // chip = min(containerWidth, containerHeight). Bumping the cap from
-    // 38% → 55% restores the original hero presence on PC (≈790px square
-    // on a 1440×900 display vs ≈547px before).
-    imageWidth: "55%",
+    // The chip container is `aspect-square` on desktop (see ServicePanel
+    // below), so its rendered size = container width. `imageWidth`
+    // becomes the panel-relative MAX width, capped to a sensible pixel
+    // value so the chip stays a hero accent — not a humungous 800px+
+    // monster on 1920px+ displays the way `55%` was producing.
+    imageWidth: "38%",
     imageOffsetRight: "4%",
     floatVariant: "subtle",
     // Violet theme anchored on #8B5CF6 (Tailwind violet-500).
@@ -104,12 +104,16 @@ export default function ServicePanel({
     ? "pointer-events-none absolute inset-0"
     : "pointer-events-none absolute inset-y-0 right-0 w-full md:w-[50%]";
 
-  // Phone: focal point pushed near the bottom of the panel so the imagery
-  // sits below the (now top-aligned) headline + copy. Desktop: original
-  // hero composition (centered or bottom-right) restored at md+.
+  // Phone: focal point pinned to the bottom of the panel so the imagery
+  // sits cleanly below the (top-aligned) headline + copy. The previous
+  // `center_88%` left the focal point ~12% above the bottom edge, which
+  // on a 1080p+ phone meant the Blockchain visual lived behind the dark
+  // legibility wash and read as "kinda invisible". `bg-bottom` lets the
+  // full visual breathe in the bottom half of the panel.
+  // Desktop: restore the original centered / bottom-right composition.
   const imagePositionClasses = isBottomAligned
     ? "bg-right-bottom"
-    : "bg-[center_88%] md:bg-center";
+    : "bg-bottom md:bg-center";
 
   return (
     // On phones the headline sits high in the panel (top-aligned with a
@@ -117,7 +121,7 @@ export default function ServicePanel({
     // pools at the bottom instead of cramming the copy against the chip.
     // From md+ we restore the original vertically-centered hero layout.
     <div
-      className="relative flex h-full w-full items-start overflow-hidden pt-24 sm:pt-28 md:items-center md:pt-0"
+      className="relative flex h-full w-full items-start overflow-hidden pt-16 sm:pt-20 md:items-center md:pt-0"
       style={{ background: service.background }}
     >
       {/* Ambient glow — centered at 75% across, behind the image */}
@@ -144,13 +148,20 @@ export default function ServicePanel({
         <div
           aria-hidden
           // Mobile: `w-[92%] max-w-[380px]` makes the chip a real hero in
-          // the bottom half of the panel (bumped up from the earlier
-          // 78%/260px which read as a small accent on 1080-wide phones
-          // where CSS pixels make 78% land at ~300px before clamping to
-          // 260). Desktop: slot is `md:w-[55%]` so the chip's max-width
-          // (`--media-w`, 55% for AI) actually fills the column. The SVG
-          // is square, so rendered chip = min(containerWidth, containerHeight).
-          className="pointer-events-none absolute bottom-0 left-1/2 top-1/2 flex w-[92%] max-w-[380px] -translate-x-1/2 items-center justify-center md:inset-y-0 md:left-auto md:right-[var(--media-right,0%)] md:w-[55%] md:max-w-[var(--media-w,100%)] md:translate-x-0"
+          // the bottom half of the panel.
+          //
+          // Desktop: `md:aspect-square` makes the slot square, and
+          // `md:w-[var(--media-w,38%)]` (a panel-relative width) is then
+          // hard-capped by `md:max-w-[420px]`. With `aspect-square`,
+          // container HEIGHT == container WIDTH, so the SVG (which uses
+          // `preserveAspectRatio="xMidYMid meet"`) renders at exactly that
+          // size. Without this cap the chip was rendering up to
+          // min(slotWidth, slideHeight) — i.e. ~900-1050px square on a
+          // 1920×1080 display, which the client called out as
+          // "humungous, so large". Vertical centering uses
+          // `md:top-1/2 md:-translate-y-1/2` so the (now-shorter) square
+          // slot sits centered in the panel instead of stretching it.
+          className="pointer-events-none absolute bottom-0 left-1/2 top-1/2 flex w-[92%] max-w-[380px] -translate-x-1/2 items-center justify-center md:bottom-auto md:left-auto md:right-[var(--media-right,0%)] md:top-1/2 md:aspect-square md:w-[var(--media-w,38%)] md:max-w-[420px] md:translate-x-0 md:-translate-y-1/2"
           style={{
             ...(service.imageWidth && !isBottomAligned
               ? { ["--media-w" as string]: service.imageWidth }
@@ -205,12 +216,16 @@ export default function ServicePanel({
         />
       )}
 
-      {/* Left dark gradient for text legibility. On phones the image fills
-          the panel, so we run an opaque-to-transparent black wash across the
-          full width to keep the headline + CTA readable. */}
+      {/* Legibility wash. On phones the imagery is pinned to the bottom of
+          the panel, so the wash runs *vertically* (opaque black behind the
+          top headline area, fully clear at the bottom) — that way the
+          Blockchain / Reality Warp visuals actually read as visuals
+          instead of being smothered under the previous left-to-right
+          black-on-everything gradient. From md+ we restore the original
+          horizontal wash that protects the left-anchored copy column. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black via-black/85 to-black/30 md:w-[60%] md:via-black/35 md:to-transparent"
+        className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-b from-black via-black/80 to-transparent md:bg-gradient-to-r md:w-[60%] md:from-black md:via-black/35 md:to-transparent"
       />
 
       {/* Soft vignette */}

@@ -103,7 +103,17 @@ export default function Industries() {
     activeIdx !== null ? industriesData[activeIdx] : null;
 
   return (
-    <section className="relative h-full w-full overflow-hidden bg-white">
+    // `absolute inset-0` (instead of `relative h-full`) makes Industries
+    // stretch to fill its slide directly off the FullPageScroller's
+    // `relative` wrapper. This is what lets the `flex-1` spacer below
+    // actually grow on desktop — when the `h-full` percentage chain
+    // failed to propagate (which we observed on some PC viewports) the
+    // inner flex column collapsed to natural content height, the spacer
+    // had nothing to grow into, and the description + list + pager row
+    // floated up under the heading instead of docking against the
+    // bottom of the section. The client described this as "industries
+    // went up on Desktop".
+    <section className="absolute inset-0 overflow-hidden bg-white">
       {/* Border beam — rotating highlight that sweeps the edge */}
       <div
         aria-hidden
@@ -154,12 +164,15 @@ export default function Industries() {
         </span>
       </div>
 
-      {/* Larger bottom padding on phones lifts the list + prev/next pager
-          above the mobile browser's address-bar / system nav. Desktop uses
-          a tighter top inset (`lg:pt-10`) so the heading + content stack
-          actually hugs the top edge instead of floating mid-section on
-          tall monitors. */}
-      <div className="relative z-10 flex h-full flex-col p-6 pb-24 sm:p-10 md:p-14 lg:px-20 lg:pb-20 lg:pt-10">
+      {/* The slide height is already the *visible* viewport (FullPageScroller
+          measures `visualViewport.height`, not `100vh`), so the mobile bottom
+          padding only needs a small breathing margin — anything larger
+          re-introduces the empty band the client called out under the
+          industry list. Desktop keeps the tighter `lg:pt-10` so the heading
+          hugs the top edge of tall monitors, while `lg:pb-12` (was 20) lets
+          the description + list + pager row dock closer to the bottom edge —
+          the client specifically asked for this row to be brought lower. */}
+      <div className="relative z-10 flex h-full flex-col p-6 pb-6 sm:p-10 md:p-14 lg:px-20 lg:pb-12 lg:pt-10">
         {/* Header — stays anchored at the top of the section. `flex-none`
             keeps the heading from being squeezed by the list below it on
             short viewports, so "Industries we serve." reads as a real
@@ -181,11 +194,21 @@ export default function Industries() {
             the side-by-side DescriptionPanel takes over. */}
         <MobileDescriptionPanel industry={activeIndustry} />
 
-        {/* Description (left) + list + nav (right). Sits directly under the
-            heading on every breakpoint with a tight `mt-6 sm:mt-8` gap so
-            the whole stack hugs the top edge — anything larger reads as the
-            content "floating in the middle" on tall PC monitors. */}
-        <div className="mt-6 flex flex-col gap-6 sm:mt-8 sm:gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+        {/* Explicit flex-grow spacer. We previously relied on `mt-auto` on
+            the next row to push the list to the bottom, but in practice
+            the data-reveal margins + collapsed mobile description card
+            interfered with the auto-margin and left the list floating
+            mid-section. A dedicated `flex-1` div is much more reliable —
+            it grows to consume *all* free vertical space, guaranteeing
+            the content row docks against the bottom of the section. */}
+        <div aria-hidden className="flex-1" />
+
+        {/* Description (left) + list + nav (right). With the spacer above,
+            this row is pinned to the bottom of the section on every
+            breakpoint. The small `pt-*` keeps the visual gap between the
+            heading and the list from collapsing on extremely short
+            viewports where the spacer would otherwise shrink to zero. */}
+        <div className="flex flex-col gap-6 pt-6 sm:gap-10 sm:pt-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16 lg:pt-16">
           <DescriptionPanel industry={activeIndustry} />
 
           <div className="w-full lg:w-[44rem]">
