@@ -158,8 +158,11 @@ export default function Industries() {
           above the mobile browser's address-bar / system nav. Desktop keeps
           its symmetric padding. */}
       <div className="relative z-10 flex h-full flex-col p-6 pb-24 sm:p-10 md:p-14 lg:p-20">
-        {/* Header */}
-        <div data-reveal style={{ transitionDelay: "100ms" }}>
+        {/* Header — stays anchored at the top of the section. `flex-none`
+            keeps the heading from being squeezed by the list below it on
+            short viewports, so "Industries we serve." reads as a real
+            page title rather than floating somewhere in the middle. */}
+        <div data-reveal style={{ transitionDelay: "100ms" }} className="flex-none">
           <p className="inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-black/50">
             <span className="h-px w-8 bg-black/30" />
             Our reach
@@ -176,8 +179,13 @@ export default function Industries() {
             the side-by-side DescriptionPanel takes over. */}
         <MobileDescriptionPanel industry={activeIndustry} />
 
-        {/* Bottom area: description (left) + list + nav (right) */}
-        <div className="mt-auto flex flex-col gap-6 sm:gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+        {/* Bottom area: description (left) + list + nav (right). On mobile
+            we let the list flow directly under the heading (`mt-8`) instead
+            of pushing it to the bottom of the viewport with `mt-auto` —
+            otherwise the heading reads as floating in the middle of an
+            empty section. From `lg:` we restore the original split layout
+            with the description anchored to the bottom-left. */}
+        <div className="mt-8 flex flex-col gap-6 sm:mt-10 sm:gap-10 lg:mt-auto lg:flex-row lg:items-start lg:justify-between lg:gap-16">
           <DescriptionPanel industry={activeIndustry} />
 
           <div className="w-full lg:w-[44rem]">

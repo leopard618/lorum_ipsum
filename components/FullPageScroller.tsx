@@ -51,13 +51,19 @@ export function useFpsControls(): FpsControls {
 }
 
 const ANIMATION_MS = 1500;
-const COOLDOWN_MS = 1600;
+/** Cooldown applied to step changes. Matched to the visual animation so
+ *  manual input is unblocked the moment the slide finishes moving. */
+const COOLDOWN_MS = ANIMATION_MS;
 const WHEEL_THRESHOLD = 10;
 const TOUCH_THRESHOLD = 50;
 const SCROLL_EDGE_TOLERANCE = 2;
 const EASE = "cubic-bezier(0.76, 0, 0.24, 1)";
 /** Interval (ms) for auto-rotating within an active horizontal slide. */
 const HORIZONTAL_AUTOPLAY_MS = 4000;
+/** Pause the horizontal autoplay for this long after any manual nav input
+ *  (wheel / swipe / key / dot-nav). Stops the autoplay from fighting a
+ *  user who is actively trying to move between sections. */
+const USER_INTERACTION_PAUSE_MS = 8000;
 
 type StepMeta = { slide: number; sub: number; label: string };
 
@@ -106,6 +112,16 @@ export default function FullPageScroller({
   // Pause horizontal autoplay while the user is hovering or keyboard-focused
   // inside the active horizontal slide.
   const [horizontalHovered, setHorizontalHovered] = useState(false);
+  // Wall-clock timestamp of the last manual nav input. The horizontal
+  // autoplay reads this to back off whenever the user is actively driving
+  // the page, which fixes the "scroll up does nothing" bug on section 2
+  // (the autoplay was claiming the cooldown window the user wanted).
+  const lastInteractionRef = useRef(0);
+  // If a manual nav input arrives mid-animation, stash the latest direction
+  // here and replay it the moment the cooldown clears. Without this the
+  // input is silently dropped, which is exactly what makes scroll-up feel
+  // broken right after an autoplay tick.
+  const queuedDirRef = useRef<1 | -1 | null>(null);
 
   const [measurements, setMeasurements] = useState<{
     viewportH: number;
@@ -140,7 +156,9 @@ export default function FullPageScroller({
   // Auto-rotate panels inside an active horizontal slide. Wraps around within
   // the slide (last panel -> first panel) without advancing to the next slide,
   // so vertical progression stays user-driven. Pauses on hover/focus, respects
-  // prefers-reduced-motion, and skips while another transition is cooling down.
+  // prefers-reduced-motion, skips while another transition is cooling down,
+  // and stays out of the way for `USER_INTERACTION_PAUSE_MS` after any
+  // manual nav input so the autoplay never steals the user's cooldown window.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const activeSlide = slides[current.slide];
@@ -155,6 +173,10 @@ export default function FullPageScroller({
     const id = window.setInterval(() => {
       if (animatingRef.current) return;
       if (typeof document !== "undefined" && document.hidden) return;
+      // Yield to the human: if they touched the page recently, hold off so
+      // their next scroll/swipe isn't blocked by our cooldown.
+      if (Date.now() - lastInteractionRef.current < USER_INTERACTION_PAUSE_MS)
+        return;
       const cur = stepMap[stepRef.current];
       if (!cur || cur.slide !== current.slide) return;
       const nextSub = (cur.sub + 1) % subCount;
@@ -163,12 +185,20 @@ export default function FullPageScroller({
       animatingRef.current = true;
       window.setTimeout(() => {
         animatingRef.current = false;
+        // Replay any user input that landed during the autoplay's
+        // animation window — otherwise that input feels swallowed.
+        const queued = queuedDirRef.current;
+        if (queued) {
+          queuedDirRef.current = null;
+          go(queued);
+        }
       }, COOLDOWN_MS);
       setStep(nextStep);
     }, HORIZONTAL_AUTOPLAY_MS);
 
     return () => window.clearInterval(id);
-  }, [current.slide, current.sub, horizontalHovered, slides, stepMap]);
+    // `go` is stable (useCallback over `count`) so it's safe to depend on.
+  }, [current.slide, current.sub, horizontalHovered, slides, stepMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const update = () => {
@@ -189,26 +219,53 @@ export default function FullPageScroller({
   // and the Footer back-to-top button can drive the scroller directly.
   const goto = useCallback(
     (target: number) => {
+      lastInteractionRef.current = Date.now();
       if (animatingRef.current) return;
       const clamped = Math.max(0, Math.min(count - 1, target));
       if (clamped === stepRef.current) return;
+      // Explicit jump replaces any queued direction — the user picked a
+      // specific destination, ignore stale wheel/swipe leftovers.
+      queuedDirRef.current = null;
       animatingRef.current = true;
       window.setTimeout(() => {
         animatingRef.current = false;
+        const queued = queuedDirRef.current;
+        if (queued) {
+          queuedDirRef.current = null;
+          go(queued);
+        }
       }, COOLDOWN_MS);
       setStep(clamped);
     },
-    [count],
+    // `go` is closed over below; goto is only ever called for explicit
+    // jumps so the lint warning here is benign.
+    [count], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const go = useCallback(
     (dir: 1 | -1) => {
-      if (animatingRef.current) return;
+      lastInteractionRef.current = Date.now();
+      // Mid-animation: stash the latest desired direction and let the
+      // cooldown handler replay it. Each new input overwrites the old
+      // one, so rapid scrolling collapses to a single follow-up jump
+      // instead of queuing a long chain of section changes.
+      if (animatingRef.current) {
+        queuedDirRef.current = dir;
+        return;
+      }
       const next = stepRef.current + dir;
-      if (next < 0 || next >= count) return;
+      if (next < 0 || next >= count) {
+        queuedDirRef.current = null;
+        return;
+      }
       animatingRef.current = true;
       window.setTimeout(() => {
         animatingRef.current = false;
+        const queued = queuedDirRef.current;
+        if (queued) {
+          queuedDirRef.current = null;
+          go(queued);
+        }
       }, COOLDOWN_MS);
       setStep(next);
     },
@@ -468,7 +525,10 @@ export default function FullPageScroller({
           <button
             key={i}
             type="button"
-            onClick={() => setStep(i)}
+            // Route through `goto` so the cooldown + queued-input
+            // bookkeeping stays consistent (otherwise a dot click during
+            // an autoplay tick can leave `animatingRef` in a weird state).
+            onClick={() => goto(i)}
             aria-label={meta.label}
             aria-current={i === step}
             className={`block rounded-full transition-all duration-500 ${
