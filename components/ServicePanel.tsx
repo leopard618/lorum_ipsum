@@ -148,7 +148,11 @@ export default function ServicePanel({
               : {}),
           }}
         >
-          <div className={`${floatClass} flex items-center justify-center`}>
+          {/* Inner wrapper hosts the float animation. Must be `h-full w-full`
+              so the SVG inside (which uses `h-full w-full` itself) actually
+              has a sized parent to fill — otherwise it collapses to its
+              intrinsic 300x150 default and the chip looks tiny on desktop. */}
+          <div className={`${floatClass} flex h-full w-full items-center justify-center`}>
             {service.renderMedia()}
           </div>
         </div>

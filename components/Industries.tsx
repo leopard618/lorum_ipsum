@@ -179,13 +179,13 @@ export default function Industries() {
             the side-by-side DescriptionPanel takes over. */}
         <MobileDescriptionPanel industry={activeIndustry} />
 
-        {/* Bottom area: description (left) + list + nav (right). On mobile
-            we let the list flow directly under the heading (`mt-8`) instead
-            of pushing it to the bottom of the viewport with `mt-auto` —
-            otherwise the heading reads as floating in the middle of an
-            empty section. From `lg:` we restore the original split layout
-            with the description anchored to the bottom-left. */}
-        <div className="mt-8 flex flex-col gap-6 sm:mt-10 sm:gap-10 lg:mt-auto lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+        {/* Description (left) + list + nav (right). Sits directly under the
+            heading on every breakpoint — earlier we pushed it to the bottom
+            of the section with `mt-auto`, but that left the heading floating
+            with a huge empty band beneath it, so the eye read the title as
+            "in the middle" of the section. Keeping the split row layout for
+            `lg:` preserves the desktop side-by-side composition. */}
+        <div className="mt-8 flex flex-col gap-6 sm:mt-10 sm:gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
           <DescriptionPanel industry={activeIndustry} />
 
           <div className="w-full lg:w-[44rem]">
