@@ -67,8 +67,10 @@ export const services: Service[] = [
     imageWidth: "60%",
     // On phones the hero composition has more vertical room to give the
     // photo, and the headline takes the full top half on its own — so we
-    // scale the VR portrait up to read as a true hero, not a corner accent.
-    mobileImageWidth: "94%",
+    // scale the VR portrait up well past 100% to read as a full hero.
+    // The container has overflow-hidden, so the slight bleed off the top-
+    // left edge crops cleanly while the focal subject stays bottom-right.
+    mobileImageWidth: "120%",
     floatVariant: "subtle",
     background: "linear-gradient(135deg, #180625 0%, #05000d 70%)",
     accent: "rgba(215, 85, 170, 0.35)",
@@ -90,15 +92,27 @@ export default function ServicePanel({
       ? "animate-service-float-subtle"
       : "animate-service-float";
 
+  // Image container fills its slot; vertical placement of the actual
+  // photo is handled below via `background-position` (so the image keeps
+  // its natural size on phones — only its focal point shifts).
   const imageContainerClasses = isBottomAligned
     ? "pointer-events-none absolute inset-0"
     : "pointer-events-none absolute inset-y-0 right-0 w-full md:w-[50%]";
 
-  const imagePosition = isBottomAligned ? "bottom right" : "center";
+  // Phone: focal point pushed near the bottom of the panel so the imagery
+  // sits below the (now top-aligned) headline + copy. Desktop: original
+  // hero composition (centered or bottom-right) restored at md+.
+  const imagePositionClasses = isBottomAligned
+    ? "bg-right-bottom"
+    : "bg-[center_88%] md:bg-center";
 
   return (
+    // On phones the headline sits high in the panel (top-aligned with a
+    // small top inset that clears the menu trigger) so the empty space
+    // pools at the bottom instead of cramming the copy against the chip.
+    // From md+ we restore the original vertically-centered hero layout.
     <div
-      className="relative flex h-full w-full items-center overflow-hidden"
+      className="relative flex h-full w-full items-start overflow-hidden pt-24 sm:pt-28 md:items-center md:pt-0"
       style={{ background: service.background }}
     >
       {/* Ambient glow — centered at 75% across, behind the image */}
@@ -117,9 +131,14 @@ export default function ServicePanel({
         // data-driven, right-anchored placement using the service's
         // imageWidth / imageOffsetRight (passed as CSS vars so Tailwind's
         // arbitrary values can resolve them at responsive breakpoints).
+        //
+        // NOTE: positioning lives on the outer div, the float animation on
+        // the inner div. The keyframe sets `transform: translateY(...)`
+        // which would otherwise overwrite the outer `-translate-x-1/2` and
+        // pull the chip off-center on phones.
         <div
           aria-hidden
-          className={`${floatClass} pointer-events-none absolute inset-y-0 left-1/2 flex w-[62%] max-w-[180px] -translate-x-1/2 items-center justify-center md:left-auto md:right-[var(--media-right,0%)] md:w-[50%] md:max-w-[var(--media-w,100%)] md:translate-x-0`}
+          className="pointer-events-none absolute bottom-0 left-1/2 top-1/2 flex w-[78%] max-w-[260px] -translate-x-1/2 items-center justify-center md:inset-y-0 md:left-auto md:right-[var(--media-right,0%)] md:w-[50%] md:max-w-[var(--media-w,100%)] md:translate-x-0"
           style={{
             ...(service.imageWidth && !isBottomAligned
               ? { ["--media-w" as string]: service.imageWidth }
@@ -129,16 +148,20 @@ export default function ServicePanel({
               : {}),
           }}
         >
-          {service.renderMedia()}
+          <div className={`${floatClass} flex items-center justify-center`}>
+            {service.renderMedia()}
+          </div>
         </div>
       ) : (
         // Bottom-aligned hero photos can opt into a responsive background-
         // size by supplying both `imageWidth` and `mobileImageWidth`. The
         // values flow in as CSS vars so Tailwind's arbitrary-length classes
         // can pick the right one per breakpoint without a JS resize watcher.
+        // `imagePositionClasses` then controls the focal point per breakpoint
+        // (mobile: low; desktop: centered or bottom-right).
         <div
           aria-hidden
-          className={`${imageContainerClasses} ${floatClass} ${
+          className={`${imageContainerClasses} ${floatClass} ${imagePositionClasses} ${
             isBottomAligned && service.imageWidth
               ? "bg-[length:var(--bg-w-mobile,60%)] md:bg-[length:var(--bg-w-desktop,60%)]"
               : ""
@@ -146,7 +169,6 @@ export default function ServicePanel({
           style={{
             backgroundImage: `url('${service.image}')`,
             backgroundRepeat: "no-repeat",
-            backgroundPosition: imagePosition,
             ...(!(isBottomAligned && service.imageWidth)
               ? { backgroundSize: "contain" }
               : {}),
