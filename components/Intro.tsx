@@ -43,8 +43,13 @@ export default function Intro() {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent"
         />
 
-        {/* content */}
-        <div className="relative z-10 flex min-h-screen flex-col">
+        {/* content. `min-h-full` (not `min-h-screen`) so the column matches
+            the parent slide's measured visible-viewport height — using
+            `100vh` on real mobile devices makes this column TALLER than
+            the visible area (because the URL bar's space is included),
+            which leaves a black band of the previous section bleeding in
+            at the top after every page transition. */}
+        <div className="relative z-10 flex min-h-full flex-col">
           {/* header — just the wordmark; navigation + Schedule call now
               live in the global MenuOverlay (see app/page.tsx). The right
               edge is reserved for the menu hamburger trigger, which is

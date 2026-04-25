@@ -143,11 +143,14 @@ export default function ServicePanel({
         // pull the chip off-center on phones.
         <div
           aria-hidden
-          // Desktop slot is `md:w-[55%]` so the chip's max-width (`--media-w`,
-          // 55% for AI) can actually fill the column instead of being clipped
-          // by an undersized parent. The SVG inside is square, so the
-          // rendered chip = min(containerWidth, containerHeight).
-          className="pointer-events-none absolute bottom-0 left-1/2 top-1/2 flex w-[78%] max-w-[260px] -translate-x-1/2 items-center justify-center md:inset-y-0 md:left-auto md:right-[var(--media-right,0%)] md:w-[55%] md:max-w-[var(--media-w,100%)] md:translate-x-0"
+          // Mobile: `w-[92%] max-w-[380px]` makes the chip a real hero in
+          // the bottom half of the panel (bumped up from the earlier
+          // 78%/260px which read as a small accent on 1080-wide phones
+          // where CSS pixels make 78% land at ~300px before clamping to
+          // 260). Desktop: slot is `md:w-[55%]` so the chip's max-width
+          // (`--media-w`, 55% for AI) actually fills the column. The SVG
+          // is square, so rendered chip = min(containerWidth, containerHeight).
+          className="pointer-events-none absolute bottom-0 left-1/2 top-1/2 flex w-[92%] max-w-[380px] -translate-x-1/2 items-center justify-center md:inset-y-0 md:left-auto md:right-[var(--media-right,0%)] md:w-[55%] md:max-w-[var(--media-w,100%)] md:translate-x-0"
           style={{
             ...(service.imageWidth && !isBottomAligned
               ? { ["--media-w" as string]: service.imageWidth }

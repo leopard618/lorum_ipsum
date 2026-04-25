@@ -189,7 +189,15 @@ export default function FullPageScroller({
 
   useEffect(() => {
     const update = () => {
-      const viewportH = window.innerHeight;
+      // Prefer `visualViewport.height` over `innerHeight` for the
+      // *visible* viewport area on mobile. On iOS Safari (and similarly
+      // on Android Chrome with the URL bar showing) `innerHeight` returns
+      // the LARGEST possible area (URL bar collapsed) which is larger
+      // than the area actually visible right now — that's exactly the
+      // mismatch that made the previous section bleed in at the top of
+      // the next section after every page transition.
+      const vv = typeof window !== "undefined" ? window.visualViewport : null;
+      const viewportH = vv ? vv.height : window.innerHeight;
       const dockHeights: Record<number, number> = {};
       for (const [key, el] of Object.entries(dockRefs.current)) {
         if (el) dockHeights[Number(key)] = el.offsetHeight;
@@ -198,7 +206,17 @@ export default function FullPageScroller({
     };
     update();
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    // Visual viewport fires its own resize event when the mobile browser
+    // shows/hides its URL bar — listen so we re-snap slide heights to
+    // the new visible area instead of leaving a stale measurement.
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    vv?.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      vv?.removeEventListener("resize", update);
+    };
   }, [slides]);
 
   // Core imperative step controls, stable across renders. Exposed via
@@ -379,12 +397,26 @@ export default function FullPageScroller({
     return -columnY;
   })();
 
+  // CRITICAL: every slide and the outer column MUST share the same height
+  // value as the one used in `translateYPx` above — otherwise on real
+  // mobile devices the URL bar's height shows up as a visible band of the
+  // previous section bleeding into the top of the current one. We use the
+  // measured visible viewport height (in px) once available, and fall back
+  // to `100dvh` (dynamic viewport height) for the very first SSR / pre-
+  // measurement paint so the layout doesn't pop.
+  const slideHeight: string | number =
+    measurements.viewportH > 0 ? measurements.viewportH : "100dvh";
+
   return (
     <FpsControlsContext.Provider value={controls}>
-      <div className="fixed inset-0 overflow-hidden bg-black">
+      <div
+        className="fixed inset-x-0 top-0 overflow-hidden bg-black"
+        style={{ height: slideHeight }}
+      >
         <div
-          className="h-full w-full"
+          className="w-full"
           style={{
+            height: slideHeight,
             transform: `translate3d(0, ${translateYPx}px, 0)`,
             transition: columnTransition,
             willChange: "transform",
@@ -409,8 +441,8 @@ export default function FullPageScroller({
                   scrollableRefs.current[slotIndex] = el;
                 }}
                 data-slide-active={active}
-                className="fps-slide relative h-screen w-full overflow-y-auto overflow-x-hidden"
-                style={visualStyle}
+                className="fps-slide relative w-full overflow-y-auto overflow-x-hidden"
+                style={{ ...visualStyle, height: slideHeight }}
               >
                 {slide.content}
               </section>
@@ -430,7 +462,7 @@ export default function FullPageScroller({
                 className="fps-slide relative w-full overflow-y-auto overflow-x-hidden"
                 style={{
                   ...visualStyle,
-                  maxHeight: "100vh",
+                  maxHeight: slideHeight,
                 }}
               >
                 {slide.content}
@@ -442,8 +474,8 @@ export default function FullPageScroller({
           return (
             <section
               key={sIdx}
-              className="relative h-screen w-full overflow-hidden"
-              style={visualStyle}
+              className="relative w-full overflow-hidden"
+              style={{ ...visualStyle, height: slideHeight }}
               onMouseEnter={active ? () => setHorizontalHovered(true) : undefined}
               onMouseLeave={active ? () => setHorizontalHovered(false) : undefined}
               onFocus={active ? () => setHorizontalHovered(true) : undefined}
