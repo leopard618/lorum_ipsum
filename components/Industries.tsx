@@ -155,9 +155,11 @@ export default function Industries() {
       </div>
 
       {/* Larger bottom padding on phones lifts the list + prev/next pager
-          above the mobile browser's address-bar / system nav. Desktop keeps
-          its symmetric padding. */}
-      <div className="relative z-10 flex h-full flex-col p-6 pb-24 sm:p-10 md:p-14 lg:p-20">
+          above the mobile browser's address-bar / system nav. Desktop uses
+          a tighter top inset (`lg:pt-10`) so the heading + content stack
+          actually hugs the top edge instead of floating mid-section on
+          tall monitors. */}
+      <div className="relative z-10 flex h-full flex-col p-6 pb-24 sm:p-10 md:p-14 lg:px-20 lg:pb-20 lg:pt-10">
         {/* Header — stays anchored at the top of the section. `flex-none`
             keeps the heading from being squeezed by the list below it on
             short viewports, so "Industries we serve." reads as a real
@@ -180,12 +182,10 @@ export default function Industries() {
         <MobileDescriptionPanel industry={activeIndustry} />
 
         {/* Description (left) + list + nav (right). Sits directly under the
-            heading on every breakpoint — earlier we pushed it to the bottom
-            of the section with `mt-auto`, but that left the heading floating
-            with a huge empty band beneath it, so the eye read the title as
-            "in the middle" of the section. Keeping the split row layout for
-            `lg:` preserves the desktop side-by-side composition. */}
-        <div className="mt-8 flex flex-col gap-6 sm:mt-10 sm:gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+            heading on every breakpoint with a tight `mt-6 sm:mt-8` gap so
+            the whole stack hugs the top edge — anything larger reads as the
+            content "floating in the middle" on tall PC monitors. */}
+        <div className="mt-6 flex flex-col gap-6 sm:mt-8 sm:gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
           <DescriptionPanel industry={activeIndustry} />
 
           <div className="w-full lg:w-[44rem]">
@@ -273,10 +273,14 @@ function DescriptionPanel({
   industry: IndustryData | null;
 }) {
   return (
+    // Aligns to the TOP of the bottom row (no `lg:mt-*` offset) so the
+    // description card sits right under the heading at the same level as
+    // the list — previously a 160px `lg:mt-40` pushed it into the middle
+    // of the section and made the whole layout read as "centered".
     <div
       data-reveal
       style={{ transitionDelay: "260ms" }}
-      className="hidden w-full max-w-md lg:block lg:mt-40 lg:max-w-sm"
+      className="hidden w-full max-w-md lg:block lg:max-w-sm"
     >
       <p className="inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-black/50">
         <span className="h-px w-8 bg-black/30" />

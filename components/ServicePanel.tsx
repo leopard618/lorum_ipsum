@@ -49,8 +49,13 @@ export const services: Service[] = [
       "Data-driven digital marketing strategies that boost your ROI and accelerate business growth.",
     cta: "View More",
     image: "/service-ai.png",
-    imageWidth: "38%",
-    imageOffsetRight: "5%",
+    // Chip occupies ~55% of the panel on desktop. The SVG's
+    // `preserveAspectRatio="xMidYMid meet"` makes it square, so the rendered
+    // chip = min(containerWidth, containerHeight). Bumping the cap from
+    // 38% → 55% restores the original hero presence on PC (≈790px square
+    // on a 1440×900 display vs ≈547px before).
+    imageWidth: "55%",
+    imageOffsetRight: "4%",
     floatVariant: "subtle",
     // Violet theme anchored on #8B5CF6 (Tailwind violet-500).
     background: "linear-gradient(135deg, #1A0A30 0%, #000000 70%)",
@@ -138,7 +143,11 @@ export default function ServicePanel({
         // pull the chip off-center on phones.
         <div
           aria-hidden
-          className="pointer-events-none absolute bottom-0 left-1/2 top-1/2 flex w-[78%] max-w-[260px] -translate-x-1/2 items-center justify-center md:inset-y-0 md:left-auto md:right-[var(--media-right,0%)] md:w-[50%] md:max-w-[var(--media-w,100%)] md:translate-x-0"
+          // Desktop slot is `md:w-[55%]` so the chip's max-width (`--media-w`,
+          // 55% for AI) can actually fill the column instead of being clipped
+          // by an undersized parent. The SVG inside is square, so the
+          // rendered chip = min(containerWidth, containerHeight).
+          className="pointer-events-none absolute bottom-0 left-1/2 top-1/2 flex w-[78%] max-w-[260px] -translate-x-1/2 items-center justify-center md:inset-y-0 md:left-auto md:right-[var(--media-right,0%)] md:w-[55%] md:max-w-[var(--media-w,100%)] md:translate-x-0"
           style={{
             ...(service.imageWidth && !isBottomAligned
               ? { ["--media-w" as string]: service.imageWidth }
