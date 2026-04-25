@@ -45,7 +45,10 @@ export default function Intro() {
 
         {/* content */}
         <div className="relative z-10 flex min-h-screen flex-col">
-          {/* header */}
+          {/* header — just the wordmark; navigation + Schedule call now
+              live in the global MenuOverlay (see app/page.tsx). The right
+              edge is reserved for the menu hamburger trigger, which is
+              fixed-positioned and drawn on top of every section. */}
           <header
             data-reveal
             style={{ transitionDelay: "100ms" }}
@@ -56,40 +59,6 @@ export default function Intro() {
               className="text-base font-semibold tracking-[0.25em] text-white sm:text-lg"
             >
               LORUM IPSUM
-            </Link>
-
-            <nav className="hidden items-center gap-10 text-[11px] font-medium uppercase tracking-[0.25em] text-white/85 md:flex">
-              <Link href="#" className="transition hover:text-white">
-                Home
-              </Link>
-              <Link href="#" className="transition hover:text-white">
-                Services
-              </Link>
-              <Link href="#" className="transition hover:text-white">
-                Blog
-              </Link>
-              <Link href="#" className="transition hover:text-white">
-                Contact Us
-              </Link>
-            </nav>
-
-            <Link
-              href="#"
-              className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full border border-white/60 px-5 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:border-white hover:shadow-[0_8px_24px_rgba(255,255,255,0.2)] sm:text-xs"
-            >
-              <span
-                aria-hidden
-                className="absolute inset-0 origin-left scale-x-0 bg-white transition-transform duration-500 ease-out group-hover:scale-x-100"
-              />
-
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              </span>
-
-              <span className="relative transition-colors duration-500 group-hover:text-black">
-                Schedule call
-              </span>
             </Link>
           </header>
 

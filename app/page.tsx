@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import FullPageScroller, { type Slide } from "@/components/FullPageScroller";
 import Industries from "@/components/Industries";
 import Intro from "@/components/Intro";
+import MenuOverlay, { type MenuItem } from "@/components/MenuOverlay";
 import ServicePanel, { services } from "@/components/ServicePanel";
 
 export default function Home() {
@@ -30,5 +31,20 @@ export default function Home() {
     { type: "dock", content: <Footer />, label: "Footer" },
   ];
 
-  return <FullPageScroller slides={slides} />;
+  // Step indices map to the slide order above:
+  //   0 = Intro, 1..3 = Services horizontal panels (we land on the first),
+  //   4 = Industries, 5 = Blog, 6 = Footer.
+  const menuItems: MenuItem[] = [
+    { label: "Home", step: 0, hint: "Welcome" },
+    { label: "Services", step: 1, hint: "What we do" },
+    { label: "Industries", step: 4, hint: "Where we work" },
+    { label: "Blog", step: 5, hint: "Field notes & essays" },
+    { label: "Contact", step: 6, hint: "Get in touch" },
+  ];
+
+  return (
+    <FullPageScroller slides={slides}>
+      <MenuOverlay items={menuItems} />
+    </FullPageScroller>
+  );
 }

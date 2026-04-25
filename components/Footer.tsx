@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 
-import { useFpsControls } from "./FullPageScroller";
-
 export default function Footer() {
   return (
     <footer className="relative overflow-hidden bg-neutral-950 text-white">
@@ -33,9 +31,6 @@ export default function Footer() {
           backgroundSize: "28px 28px",
         }}
       />
-
-      {/* scroll to top */}
-      <ScrollTopButton />
 
       <div className="relative z-[1] mx-auto max-w-7xl px-6 pt-16 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
         {/* top grid */}
@@ -238,20 +233,6 @@ function SocialLink({
   );
 }
 
-function ScrollTopButton() {
-  const { goto } = useFpsControls();
-  return (
-    <button
-      type="button"
-      onClick={() => goto(0)}
-      aria-label="Back to top"
-      className="group absolute right-6 top-6 z-20 grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/[0.03] text-white backdrop-blur-sm transition hover:border-white/60 hover:bg-white hover:text-black sm:right-10 sm:top-10"
-    >
-      <ArrowUp className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
-    </button>
-  );
-}
-
 /* icons */
 function ArrowRight({ className = "" }: { className?: string }) {
   return (
@@ -267,24 +248,6 @@ function ArrowRight({ className = "" }: { className?: string }) {
     >
       <path d="M5 12h14" />
       <path d="M13 5l7 7-7 7" />
-    </svg>
-  );
-}
-
-function ArrowUp({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M12 19V5" />
-      <path d="M5 12l7-7 7 7" />
     </svg>
   );
 }

@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 
 export type Slide =
@@ -60,7 +61,18 @@ const HORIZONTAL_AUTOPLAY_MS = 4000;
 
 type StepMeta = { slide: number; sub: number; label: string };
 
-export default function FullPageScroller({ slides }: { slides: Slide[] }) {
+export default function FullPageScroller({
+  slides,
+  children,
+}: {
+  slides: Slide[];
+  /**
+   * Optional UI rendered inside the controls provider, on top of every
+   * slide (e.g. a global menu overlay or persistent header). Useful for
+   * anything that needs `useFpsControls()` to drive navigation.
+   */
+  children?: ReactNode;
+}) {
   const stepMap = useMemo<StepMeta[]>(() => {
     const map: StepMeta[] = [];
     slides.forEach((s, slideIdx) => {
@@ -457,6 +469,10 @@ export default function FullPageScroller({ slides }: { slides: Slide[] }) {
             <span className="h-px w-8 bg-white/50" />
           </span>
         </div>
+
+        {/* Anything passed as children renders on top of every slide and
+            inherits the controls context — used for the global menu. */}
+        {children}
       </div>
     </FpsControlsContext.Provider>
   );
