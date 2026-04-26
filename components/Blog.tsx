@@ -3,68 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-type BlogPost = {
-  eyebrow: string;
-  titleLineOne: string;
-  titleLineTwo: string;
-  description: string;
-  byline: string;
-  readTime: string;
-  date: string;
-};
-
-const posts: BlogPost[] = [
-  {
-    eyebrow: "Featured · Culture × Tech",
-    titleLineOne: "Tuning Into",
-    titleLineTwo: "The Machine",
-    description:
-      "Headphones are the new heads-up display. We dig into how ambient AI, voice, and spatial audio are quietly rewriting the grammar of product design — and what it means for the interfaces we ship next.",
-    byline: "By the Lorum Ipsum Studio",
-    readTime: "8 min read",
-    date: "Apr 2026",
-  },
-  {
-    eyebrow: "Essay · Product",
-    titleLineOne: "Designing For",
-    titleLineTwo: "The Post-Screen Era",
-    description:
-      "Voice, gesture, and ambient interfaces are quietly rewiring how people meet software. A short field guide for designers shipping into a world where the screen is no longer the surface.",
-    byline: "Mira Akhand · Design Lead",
-    readTime: "6 min read",
-    date: "Mar 2026",
-  },
-  {
-    eyebrow: "Engineering · AI",
-    titleLineOne: "When Code",
-    titleLineTwo: "Starts Composing",
-    description:
-      "Generative models have moved from autocomplete to authorship. We share what changed in our workflow, our tooling, and our taste once AI became a real collaborator on the team.",
-    byline: "Theo Park · Principal Engineer",
-    readTime: "10 min read",
-    date: "Mar 2026",
-  },
-  {
-    eyebrow: "Field Notes · Edge",
-    titleLineOne: "The Quiet",
-    titleLineTwo: "Revolution Of Edge AI",
-    description:
-      "Smaller models, on-device inference, and the slow death of round-trips. How edge intelligence is reshaping latency, privacy, and the products we will buy next year.",
-    byline: "Lina Vasquez · ML Strategist",
-    readTime: "7 min read",
-    date: "Feb 2026",
-  },
-  {
-    eyebrow: "Opinion · Work",
-    titleLineOne: "Slow Software",
-    titleLineTwo: "For Fast Teams",
-    description:
-      "Speed of shipping is not the same as speed of thought. Why the tools that respect deep work will outlast the ones optimised for notifications and dashboards.",
-    byline: "Kenji Ito · Staff Product Manager",
-    readTime: "5 min read",
-    date: "Feb 2026",
-  },
-];
+import { posts } from "@/lib/blogPosts";
 
 /**
  * Hybrid visual strategy — three hand-picked photos that cycle via `idx %
@@ -87,6 +26,11 @@ export default function Blog() {
 
   const post = posts[idx];
   const activeVisual = idx % visuals.length;
+  // Title displayed on the poster: prefer the editorial two-line split
+  // (`poster.lineOne` / `lineTwo`) defined per post; fall back to the
+  // single-line title if a post hasn't supplied one.
+  const lineOne = post.poster?.lineOne ?? post.title;
+  const lineTwo = post.poster?.lineTwo ?? "";
 
   const changePost = (direction: 1 | -1) => {
     if (exiting) return;
@@ -204,23 +148,35 @@ export default function Blog() {
                   {String(idx + 1).padStart(2, "0")}
                 </span>
                 <span className="h-px w-10 bg-white/30" />
-                <span>{post.eyebrow}</span>
+                <span>{post.category}</span>
               </div>
 
-              <h2
+              {/* Whole title is one big link — clicking the headline jumps
+                  straight to the per-post detail page. The hover state
+                  underlines just the visible title text so it still
+                  reads as type, not as a button. */}
+              <Link
+                href={`/blog/${post.slug}`}
                 data-reveal
                 style={{ transitionDelay: "220ms" }}
-                className="mt-5 text-[2.5rem] font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:mt-6 sm:text-6xl lg:text-7xl"
+                className="mt-5 inline-block text-[2.5rem] font-extrabold uppercase leading-[0.95] tracking-tight text-white transition-colors duration-300 hover:text-violet-200 sm:mt-6 sm:text-6xl lg:text-7xl"
+                aria-label={`Read ${post.title}`}
               >
-                {post.titleLineOne} <br className="hidden sm:block" />
-                {post.titleLineTwo}
-              </h2>
+                {lineOne}
+                {lineTwo && (
+                  <>
+                    {" "}
+                    <br className="hidden sm:block" />
+                    {lineTwo}
+                  </>
+                )}
+              </Link>
 
               <div
                 aria-hidden
                 data-reveal
                 style={{ transitionDelay: "360ms" }}
-                className="mt-6 h-[2px] w-24 bg-gradient-to-r from-red-400 via-white/70 to-transparent"
+                className="mt-6 h-[2px] w-24 bg-gradient-to-r from-violet-400 via-white/70 to-transparent"
               />
 
               <p
@@ -228,7 +184,7 @@ export default function Blog() {
                 style={{ transitionDelay: "500ms" }}
                 className="mt-5 max-w-lg text-sm leading-relaxed text-white/75 sm:mt-6 sm:text-[15px]"
               >
-                {post.description}
+                {post.excerpt}
               </p>
 
               <div
@@ -236,7 +192,7 @@ export default function Blog() {
                 style={{ transitionDelay: "620ms" }}
                 className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-medium uppercase tracking-[0.22em] text-white/55 sm:mt-6 sm:gap-x-5 sm:text-[11px] sm:tracking-[0.25em]"
               >
-                <span>{post.byline}</span>
+                <span>{post.author}</span>
                 <span className="h-1 w-1 rounded-full bg-white/40" />
                 <span>{post.readTime}</span>
                 <span className="h-1 w-1 rounded-full bg-white/40" />
@@ -249,10 +205,10 @@ export default function Blog() {
                 className="mt-7 sm:mt-10"
               >
                 <Link
-                  href="#"
+                  href={`/blog/${post.slug}`}
                   className="group relative inline-flex w-fit items-center gap-3 overflow-hidden rounded-full bg-white px-6 py-3 text-sm font-semibold text-black shadow-[0_6px_20px_rgba(0,0,0,0.35)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(255,255,255,0.22)]"
                 >
-                  <span className="relative">Read More</span>
+                  <span className="relative">Read article</span>
                   <span className="relative grid h-3.5 w-3.5 place-items-center overflow-hidden">
                     <ArrowUpRight className="absolute h-3 w-3 transition-transform duration-300 ease-out group-hover:-translate-y-4 group-hover:translate-x-4" />
                     <ArrowUpRight className="absolute h-3 w-3 -translate-x-4 translate-y-4 transition-transform duration-300 ease-out group-hover:translate-x-0 group-hover:translate-y-0" />

@@ -119,9 +119,9 @@ export default function Footer() {
             <FooterColumn
               title="Quick Links"
               links={[
-                { label: "Home", href: "#" },
-                { label: "Services", href: "#" },
-                { label: "Blogs", href: "#" },
+                { label: "Home", href: "/" },
+                { label: "Services", href: "/#step-1" },
+                { label: "Blogs", href: "/blog" },
                 { label: "Contact Us", href: "/contact" },
               ]}
             />

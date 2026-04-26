@@ -34,13 +34,14 @@ export default function Home() {
   // Step indices map to the slide order above:
   //   0 = Intro, 1..3 = Services horizontal panels (we land on the first),
   //   4 = Industries, 5 = Blog, 6 = Footer.
-  // The Contact entry routes to a standalone /contact page (white form,
-  // hCaptcha, etc.) rather than jumping inside the scroller.
+  // Blog and Contact route to standalone Next.js pages (/blog and /contact)
+  // instead of jumping to a slide — the in-page Blog slide is still there
+  // as an editorial teaser and links to /blog via its "Read More" CTA.
   const menuItems: MenuItem[] = [
     { label: "Home", step: 0, hint: "Welcome" },
     { label: "Services", step: 1, hint: "What we do" },
     { label: "Industries", step: 4, hint: "Where we work" },
-    { label: "Blog", step: 5, hint: "Field notes & essays" },
+    { label: "Blog", href: "/blog", hint: "Field notes & essays" },
     { label: "Contact", href: "/contact", hint: "Get in touch" },
   ];
 

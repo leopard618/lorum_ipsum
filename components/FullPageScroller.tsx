@@ -302,6 +302,36 @@ export default function FullPageScroller({
     [goto, advance, retreat, count],
   );
 
+  // Deep-link support: when the page is loaded (or navigated back to)
+  // with a `#step-N` hash, jump straight to that step. The MenuOverlay
+  // emits these hashes from non-home routes (e.g. clicking "Services"
+  // from /contact lands on `/#step-1`). Once consumed, we strip the
+  // hash via replaceState so a back-button to "/" doesn't re-trigger
+  // the jump on every revisit.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const consumeHash = () => {
+      const m = window.location.hash.match(/^#step-(\d+)$/);
+      if (!m) return;
+      const step = parseInt(m[1], 10);
+      if (Number.isNaN(step)) return;
+      goto(step);
+      try {
+        history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
+      } catch {
+        // History API can throw in obscure sandboxes; the goto already
+        // happened, so swallowing here is harmless.
+      }
+    };
+    consumeHash();
+    window.addEventListener("hashchange", consumeHash);
+    return () => window.removeEventListener("hashchange", consumeHash);
+  }, [goto]);
+
   useEffect(() => {
     const getActiveScrollEl = () => scrollableRefs.current[stepRef.current];
 

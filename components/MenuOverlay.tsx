@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useFpsControls } from "./FullPageScroller";
@@ -30,7 +31,7 @@ export const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { label: "Home", step: 0, hint: "Welcome" },
   { label: "Services", step: 1, hint: "What we do" },
   { label: "Industries", step: 4, hint: "Where we work" },
-  { label: "Blog", step: 5, hint: "Field notes & essays" },
+  { label: "Blog", href: "/blog", hint: "Field notes & essays" },
   { label: "Contact", href: "/contact", hint: "Get in touch" },
 ];
 
@@ -64,6 +65,13 @@ export default function MenuOverlay({
   // FullPageScroller provider (see its definition), so this is fine on
   // standalone routes like /contact where the menu still needs to mount.
   const { goto } = useFpsControls();
+  // We need the current route to decide how to handle "step" items:
+  // when the menu lives inside the FullPageScroller (home page) we can
+  // call goto() directly; from any standalone route (e.g. /contact) we
+  // instead push to `/#step-N` so the home page can pick the step up
+  // and animate to it after route change.
+  const pathname = usePathname();
+  const isOnHome = pathname === "/";
 
   // Esc closes; lock body scroll while open (defense-in-depth — the
   // FullPageScroller already prevents page scroll, but native body scroll
@@ -236,7 +244,7 @@ export default function MenuOverlay({
                       >
                         {rowInner}
                       </Link>
-                    ) : (
+                    ) : isOnHome ? (
                       <button
                         type="button"
                         onClick={() => handleStepNav(item.step ?? 0)}
@@ -244,6 +252,14 @@ export default function MenuOverlay({
                       >
                         {rowInner}
                       </button>
+                    ) : (
+                      <Link
+                        href={`/#step-${item.step ?? 0}`}
+                        onClick={() => setOpen(false)}
+                        className={rowClass}
+                      >
+                        {rowInner}
+                      </Link>
                     )}
                   </li>
                 );

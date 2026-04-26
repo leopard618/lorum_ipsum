@@ -316,7 +316,7 @@ export default function ContactPage() {
                 onChange={update("company")}
                 error={errors.company}
                 autoComplete="organization"
-                placeholder="Optional"
+                placeholder="Your Company"
               />
               <div className="sm:col-span-2">
                 <FieldLabel required>Message</FieldLabel>
@@ -420,9 +420,7 @@ function FieldLabel({
   return (
     <label className="block text-[13px] font-medium uppercase tracking-[0.14em] text-neutral-600">
       {children}
-      {/* Required marker uses the project's violet accent — the only
-          chromatic colour we allow on this page. */}
-      {required && <span className="ml-1 text-violet-500">*</span>}
+      {required && <span className="ml-1 text-neutral-900">*</span>}
     </label>
   );
 }
