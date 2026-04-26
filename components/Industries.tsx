@@ -168,11 +168,13 @@ export default function Industries() {
           measures `visualViewport.height`, not `100vh`), so the mobile bottom
           padding only needs a small breathing margin — anything larger
           re-introduces the empty band the client called out under the
-          industry list. Desktop keeps the tighter `lg:pt-10` so the heading
-          hugs the top edge of tall monitors, while `lg:pb-12` (was 20) lets
-          the description + list + pager row dock closer to the bottom edge —
-          the client specifically asked for this row to be brought lower. */}
-      <div className="relative z-10 flex h-full flex-col p-6 pb-6 sm:p-10 md:p-14 lg:px-20 lg:pb-12 lg:pt-10">
+          industry list. Desktop now uses `lg:pt-24` (was 10) so the heading
+          sits visibly inset from the top edge instead of hugging it, and
+          `lg:pb-6` (was 12) keeps pushing the description + list + pager
+          row toward the bottom edge — together those nudge both the title
+          *and* the description block down on desktop, which is exactly the
+          micro-adjustment the client asked for. */}
+      <div className="relative z-10 flex h-full flex-col p-6 pb-6 sm:p-10 md:p-14 lg:px-20 lg:pb-6 lg:pt-24">
         {/* Header — stays anchored at the top of the section. `flex-none`
             keeps the heading from being squeezed by the list below it on
             short viewports, so "Industries we serve." reads as a real

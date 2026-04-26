@@ -55,7 +55,10 @@ export const services: Service[] = [
     // value so the chip stays a hero accent — not a humungous 800px+
     // monster on 1920px+ displays the way `55%` was producing.
     imageWidth: "38%",
-    imageOffsetRight: "4%",
+    // Pulled the chip a notch in from the desktop right edge (was 4%)
+    // so it sits a little further inside the panel — the previous
+    // value made the chip feel pinned hard against the right gutter.
+    imageOffsetRight: "10%",
     floatVariant: "subtle",
     // Violet theme anchored on #8B5CF6 (Tailwind violet-500).
     background: "linear-gradient(135deg, #1A0A30 0%, #000000 70%)",

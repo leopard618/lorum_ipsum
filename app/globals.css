@@ -12,6 +12,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
+  /* Prevent iOS pull-to-refresh and Chrome overscroll bounce from
+     intercepting the reverse-direction swipe on the FullPageScroller —
+     this was the root cause of "I scrolled down and now can't scroll
+     back up" on real phones, where the browser was eating the upward
+     gesture as a refresh trigger before our handler ever saw it. */
+  overscroll-behavior: none;
+  /* Belt-and-braces: the same protection on the scrollable column wins
+     us the same fix on Android Chrome where the chained behaviour can
+     bubble up through the document instead of html/body. */
+  overscroll-behavior-y: none;
 }
 
 @keyframes marquee {

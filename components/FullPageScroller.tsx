@@ -50,15 +50,22 @@ export function useFpsControls(): FpsControls {
   return ctx;
 }
 
-const ANIMATION_MS = 1100;
-/** Cooldown applied to step changes. Matched to the visual animation so
- *  manual input is unblocked the moment the slide finishes moving. */
-const COOLDOWN_MS = ANIMATION_MS;
+const ANIMATION_MS = 1000;
+/** Cooldown applied to step changes. Slightly *shorter* than the visual
+ *  animation so a determined user who reverses direction the instant the
+ *  slide stops moving isn't blocked by a stale lock — that was the
+ *  reproduction of "I scroll down and then I can't scroll back up" on
+ *  real mobile devices. Opposite-direction inputs interrupt anyway, but
+ *  a slightly shorter cooldown keeps the same-direction debounce honest
+ *  without hijacking the immediately-following gesture. */
+const COOLDOWN_MS = 850;
 const WHEEL_THRESHOLD = 10;
 /** Lower than the original 50px so a quick flick on a real phone (where
  *  swipes tend to cover ~30-60 vertical pixels) actually triggers a
- *  section change instead of being silently ignored. */
-const TOUCH_THRESHOLD = 32;
+ *  section change instead of being silently ignored. Tightened further
+ *  to 24 because clients reported that small reverse flicks (after a
+ *  big down-swipe) were being filtered out as "noise". */
+const TOUCH_THRESHOLD = 24;
 const SCROLL_EDGE_TOLERANCE = 2;
 const EASE = "cubic-bezier(0.76, 0, 0.24, 1)";
 /** Interval (ms) for auto-rotating within an active horizontal slide. */
@@ -353,16 +360,45 @@ export default function FullPageScroller({
     // gesture that begins in the menu and ends elsewhere (e.g. user drags
     // out) still gets ignored.
     let touchStartedInOverlay = false;
+    // Once a single physical swipe has crossed the threshold and triggered
+    // a section change we don't want subsequent touchmove ticks of the
+    // *same* gesture to fire again. This flag is reset on every fresh
+    // touchstart, so the next gesture is honoured normally.
+    let touchFiredThisGesture = false;
 
     const onTouchStart = (e: TouchEvent) => {
       touchStartedInOverlay = isOverlayEvent(e.target);
       touchStartYRef.current = e.touches[0]?.clientY ?? 0;
+      touchFiredThisGesture = false;
+    };
+    // Fire the section change as soon as the user crosses the threshold,
+    // *while their finger is still on the screen*, instead of waiting for
+    // touchend. This was the missing piece that explained why opposite-
+    // direction swipes occasionally felt unresponsive on real phones —
+    // iOS Safari sometimes coalesces / drops the trailing touchend after
+    // a fast flick, but touchmove always fires reliably during the
+    // gesture. Acting on touchmove makes the response feel instant and
+    // closes the window where the previous animation's cooldown could
+    // still be racing.
+    const onTouchMove = (e: TouchEvent) => {
+      if (touchStartedInOverlay || touchFiredThisGesture) return;
+      const moveY = e.touches[0]?.clientY ?? 0;
+      const dy = touchStartYRef.current - moveY;
+      if (Math.abs(dy) < TOUCH_THRESHOLD) return;
+      const dir: 1 | -1 = dy > 0 ? 1 : -1;
+      if (canConsumeDirection(dir)) return;
+      touchFiredThisGesture = true;
+      go(dir);
     };
     const onTouchEnd = (e: TouchEvent) => {
       if (touchStartedInOverlay) {
         touchStartedInOverlay = false;
         return;
       }
+      // Backstop: if touchmove never crossed the threshold (e.g. very
+      // short flicks where touchmove skips between sample points), still
+      // honour the swipe at lift-off.
+      if (touchFiredThisGesture) return;
       const endY = e.changedTouches[0]?.clientY ?? 0;
       const dy = touchStartYRef.current - endY;
       if (Math.abs(dy) < TOUCH_THRESHOLD) return;
@@ -384,6 +420,7 @@ export default function FullPageScroller({
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("fps:advance", onAdvanceEvt);
     window.addEventListener("fps:retreat", onRetreatEvt);
@@ -393,6 +430,7 @@ export default function FullPageScroller({
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("fps:advance", onAdvanceEvt);
       window.removeEventListener("fps:retreat", onRetreatEvt);
@@ -488,22 +526,23 @@ export default function FullPageScroller({
                 }}
                 data-slide-active={active}
                 className="fps-slide relative w-full overflow-y-auto overflow-x-hidden"
-                // Dock now publishes an explicit slide-height (was
-                // `maxHeight: slideHeight`). The previous `maxHeight` left
-                // the dock section sized to its content on short footers
-                // and clamped to the viewport on tall ones — but on real
-                // mobile devices the Footer's content runs taller than
-                // the visible viewport, so the section got clamped, the
-                // social bar at the end of flow got pushed off the
-                // bottom, and the empty area below it read as a "black
-                // gap" (the FullPageScroller's `bg-black` showing
-                // through). With `height: slideHeight` the dock is
-                // *always* exactly the visible viewport, so the inner
-                // Footer's `min-h-full` chain resolves and its
-                // `mt-auto` social bar pins cleanly to the bottom edge.
+                // Dock sections size to their content (capped at the
+                // viewport) so a compact footer renders as a real
+                // *dock pop-up* — short footer pinned to the bottom
+                // edge of the screen with the previous slide visible
+                // above — instead of being forced to fill the full
+                // viewport (which was hiding the social bar below the
+                // fold whenever the watermark grew tall on desktop).
+                // The translateY math in the parent column already
+                // accounts for this: when the active slide is a dock,
+                // it offsets the column by `(viewportH - dockHeight)`
+                // so the dock's bottom hugs the viewport's bottom.
+                // overflow-y-auto on the section keeps the footer
+                // scrollable when its content runs taller than the
+                // viewport on small phones.
                 style={{
                   ...visualStyle,
-                  height: slideHeight,
+                  maxHeight: slideHeight,
                 }}
               >
                 {slide.content}

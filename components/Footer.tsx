@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useFpsControls } from "./FullPageScroller";
 
 export default function Footer() {
   return (
-    // `flex min-h-full flex-col` makes the footer at least fill the
-    // dock slide (which now publishes an explicit `height: slideHeight`,
-    // so the `min-h-full` percentage actually resolves) but still allows
-    // it to grow if content overflows on short viewports — the dock
-    // section is `overflow-y-auto` so the user can scroll within. With
-    // this chain in place the bottom bar's `mt-auto` pins the social
-    // row to the bottom edge of the visible viewport on every
-    // breakpoint, killing the "black gap" the client called out under
-    // the LORUM IPSUM watermark.
-    <footer className="relative flex min-h-full flex-col overflow-hidden bg-neutral-950 text-white">
+    // The footer is intentionally *natural-height* now — no
+    // `min-h-full`, no `flex-1` absorber. The parent dock slide is
+    // `maxHeight: slideHeight`, so the dock collapses to whatever
+    // height the footer reports, and the FullPageScroller pops the
+    // dock up against the bottom of the viewport. That keeps the
+    // social bar in view (it was previously falling below the fold
+    // when we forced the footer to fill 100% of the slide) and reads
+    // as the compact, dock-style footer the design called for.
+    <footer className="relative flex flex-col overflow-hidden bg-neutral-950 text-white">
       {/* top accent line */}
       <div
         aria-hidden
@@ -41,15 +41,29 @@ export default function Footer() {
         }}
       />
 
-      <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-10 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
-        {/* top grid */}
-        <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-10">
-          {/* Newsletter */}
+      {/* TOP — Subscribe panel + navigation columns. Paddings tuned
+          tight (pt-10/pt-12/pt-14) so the whole footer sits inside a
+          single dock pop-up without pushing the social bar off-screen
+          on a 1080p laptop. */}
+      <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-10 sm:px-12 sm:pt-12 lg:px-16 lg:pt-14">
+        <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-12">
+          {/* Newsletter — given more weight (5/12) and now leads with an
+              eyebrow + a one-liner so it reads as a real call-to-action
+              rather than a stranded heading + input. */}
           <div className="lg:col-span-5">
-            <h3
+            <p
               data-reveal
               style={{ transitionDelay: "0ms" }}
-              className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl"
+              className="inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/50"
+            >
+              <span className="h-px w-8 bg-white/30" />
+              Stay connected
+            </p>
+
+            <h3
+              data-reveal
+              style={{ transitionDelay: "80ms" }}
+              className="mt-5 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl"
             >
               Subscribe to our{" "}
               <span className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
@@ -57,10 +71,23 @@ export default function Footer() {
               </span>
             </h3>
 
+            {/* Hidden on phones — copy was making the mobile footer
+                feel cramped under the headline. Desktop keeps the
+                supporting one-liner for context. */}
+            <p
+              data-reveal
+              style={{ transitionDelay: "160ms" }}
+              className="mt-4 hidden max-w-md text-sm leading-relaxed text-white/55 sm:block"
+            >
+              {
+                "Studio updates, case studies, and the occasional production lesson \u2014 delivered straight to your inbox, no spam."
+              }
+            </p>
+
             <form
               onSubmit={(e) => e.preventDefault()}
               data-reveal
-              style={{ transitionDelay: "200ms" }}
+              style={{ transitionDelay: "240ms" }}
               className="group relative mt-7 flex w-full max-w-md items-center gap-3 border-b border-white/20 py-3 transition focus-within:border-white"
             >
               <input
@@ -79,12 +106,14 @@ export default function Footer() {
             </form>
           </div>
 
-          {/* Link columns */}
-          <nav
-            aria-label="Footer"
+          {/* Navigation columns. Single 3-column subgrid (Quick Links,
+              Policies, Contact) keeps the right side of the top zone
+              tidy and balanced — previously the contact lived as its
+              own col-span, fighting the 2-col link grid for alignment. */}
+          <div
             data-reveal
-            style={{ transitionDelay: "300ms" }}
-            className="grid grid-cols-2 gap-8 lg:col-span-4 lg:grid-cols-2"
+            style={{ transitionDelay: "320ms" }}
+            className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 sm:gap-x-10 lg:col-span-7"
           >
             <FooterColumn
               title="Quick Links"
@@ -102,97 +131,143 @@ export default function Footer() {
                 { label: "Terms and Conditions", href: "#" },
               ]}
             />
-          </nav>
-
-          {/* Contact */}
-          <div
-            data-reveal
-            style={{ transitionDelay: "450ms" }}
-            className="lg:col-span-3"
-          >
-            <ul className="space-y-4 text-sm text-white/75">
-              <li className="flex items-center gap-3">
-                <PhoneIcon className="h-4 w-4 flex-none text-white/60" />
-                <a href="tel:+1000000000" className="hover:text-white">
-                  +1 000 000000
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <MailIcon className="h-4 w-4 flex-none text-white/60" />
-                <a
-                  href="mailto:email@address.here"
-                  className="hover:text-white"
-                >
-                  email@address.here
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <PinIcon className="h-4 w-4 flex-none text-white/60" />
-                <span>Address Here</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* giant logo */}
-        <div
-          data-reveal
-          style={{ transitionDelay: "150ms" }}
-          className="mt-6 border-t border-white/10 pt-6 sm:mt-20 sm:pt-14"
-        >
-          <div className="group relative">
-            <div
-              className="select-none text-[14vw] font-extrabold leading-[0.85] tracking-tight text-transparent sm:text-[10vw] lg:text-[7vw]"
-              style={{ WebkitTextStroke: "1px rgba(255,255,255,0.2)" }}
-            >
-              LORUM IPSUM
-            </div>
-            <div
-              aria-hidden
-              className="animate-glow-pan pointer-events-none absolute inset-0 select-none bg-gradient-to-r from-red-500 via-fuchsia-400 to-cyan-400 bg-clip-text text-[14vw] font-extrabold leading-[0.85] tracking-tight text-transparent opacity-0 transition duration-700 group-hover:opacity-100 sm:text-[10vw] lg:text-[7vw]"
-            >
-              LORUM IPSUM
-            </div>
+            <ContactColumn />
           </div>
         </div>
       </div>
 
-      {/* Bottom bar. `mt-auto` is what actually pins this row to the
-          bottom of the slide — combined with the parent footer's flex
-          column it eats whatever vertical room is left over after the
-          main content, so the social icons + copyright always render
-          at the very bottom of the visible viewport. The mobile bottom
-          padding can stay small (`pb-6`) because the slide height is
-          already measured to *exclude* the browser's URL bar / Android
-          nav, so there's nothing to clear. */}
+      {/* WATERMARK — desktop-only now. The whole block (including the
+          divider line above it) is `hidden sm:block`, so phones get a
+          clean stack of newsletter -> nav columns -> bottom bar with
+          no oversized brand text wedged in between. On desktop it
+          stays as the centerpiece. Sizes are deliberately conservative
+          (`text-[6vw]` -> `text-[5vw]`) and `whitespace-nowrap` keeps
+          the two-word mark on a single line. */}
       <div
         data-reveal
-        style={{ transitionDelay: "300ms" }}
-        className="relative z-[1] mx-auto mt-auto flex w-full max-w-7xl flex-col items-center gap-5 border-t border-white/10 px-6 pb-6 pt-6 sm:flex-row sm:justify-between sm:gap-6 sm:px-12 sm:py-8 lg:px-16"
+        style={{ transitionDelay: "120ms" }}
+        className="relative z-[1] mx-auto hidden w-full max-w-7xl border-t border-white/10 px-6 py-5 sm:mt-9 sm:block sm:px-12 sm:py-6 lg:px-16"
       >
-        <div className="flex items-center gap-3">
-          <SocialLink href="#" label="X">
-            <XIcon className="h-3.5 w-3.5" />
-          </SocialLink>
-          <SocialLink href="#" label="Instagram">
-            <InstagramIcon className="h-4 w-4" />
-          </SocialLink>
-          <SocialLink href="#" label="YouTube">
-            <YouTubeIcon className="h-4 w-4" />
-          </SocialLink>
-          <SocialLink href="#" label="LinkedIn">
-            <LinkedInIcon className="h-4 w-4" />
-          </SocialLink>
+        <div className="group relative">
+          <div
+            className="select-none whitespace-nowrap text-center text-[6vw] font-extrabold leading-[0.95] tracking-tight text-transparent lg:text-[5vw]"
+            style={{ WebkitTextStroke: "1px rgba(255,255,255,0.18)" }}
+          >
+            LORUM IPSUM
+          </div>
+          <div
+            aria-hidden
+            className="animate-glow-pan pointer-events-none absolute inset-0 select-none whitespace-nowrap bg-gradient-to-r from-red-500 via-fuchsia-400 to-cyan-400 bg-clip-text text-center text-[6vw] font-extrabold leading-[0.95] tracking-tight text-transparent opacity-0 transition duration-700 group-hover:opacity-100 lg:text-[5vw]"
+          >
+            LORUM IPSUM
+          </div>
         </div>
+      </div>
 
-        <p className="text-xs text-white/50">
-          © <span className="text-white/70">2026</span> Lorum Ipsum. All rights
-          reserved.
-        </p>
+      {/* BOTTOM BAR — three slots: socials (left), copyright (centre)
+          and a Back-to-top control (right). Social row now leads with
+          a "Follow us" eyebrow so the icons read as a deliberate
+          group rather than four lonely dots, and the icons themselves
+          are slightly larger than the previous version (10x10 buttons,
+          bigger glyphs) to make them obvious in answer to "where is
+          social media?". The back-to-top is wired through
+          `FpsControls.goto(0)` so it animates the user back to the
+          Intro slide using the same scroll engine as the rest of the
+          page, instead of a plain `#top` anchor (which would do
+          nothing inside the FullPageScroller). */}
+      <div
+        data-reveal
+        style={{ transitionDelay: "260ms" }}
+        className="relative z-[1] mx-auto w-full max-w-7xl px-6 pb-6 sm:px-12 sm:pb-7 lg:px-16"
+      >
+        <div className="flex flex-col items-center gap-4 border-t border-white/10 pt-5 sm:flex-row sm:justify-between sm:gap-6 sm:pt-6">
+          <div className="flex items-center gap-3">
+            <span className="hidden text-[10px] font-semibold uppercase tracking-[0.28em] text-white/40 sm:inline">
+              Follow us
+            </span>
+            <span aria-hidden className="hidden h-px w-6 bg-white/15 sm:inline-block" />
+            <div className="flex items-center gap-2.5">
+              <SocialLink href="#" label="X">
+                <XIcon className="h-4 w-4" />
+              </SocialLink>
+              <SocialLink href="#" label="Instagram">
+                <InstagramIcon className="h-[18px] w-[18px]" />
+              </SocialLink>
+              <SocialLink href="#" label="YouTube">
+                <YouTubeIcon className="h-[18px] w-[18px]" />
+              </SocialLink>
+              <SocialLink href="#" label="LinkedIn">
+                <LinkedInIcon className="h-[18px] w-[18px]" />
+              </SocialLink>
+            </div>
+          </div>
 
-        <div className="hidden sm:block sm:w-12" aria-hidden />
+          <p className="order-3 text-xs text-white/50 sm:order-none">
+            © <span className="text-white/70">2026</span> Lorum Ipsum. All
+            rights reserved.
+          </p>
+
+          <BackToTopButton />
+        </div>
       </div>
     </footer>
+  );
+}
+
+/**
+ * Right-side action that takes the user back to the very first slide.
+ * Pulled out into its own component because it has to live inside the
+ * FpsControls provider tree — Footer itself is rendered inside the
+ * scroller, so the hook is safe to call here.
+ */
+function BackToTopButton() {
+  const { goto } = useFpsControls();
+  return (
+    <button
+      type="button"
+      onClick={() => goto(0)}
+      className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70 transition hover:-translate-y-0.5 hover:border-white/40 hover:bg-white hover:text-black"
+    >
+      <span>Back to top</span>
+      <ArrowUp className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" />
+    </button>
+  );
+}
+
+/**
+ * Renamed from inline JSX so the navigation row reads as three peer
+ * columns. The PHONE/MAIL/PIN icons get the same heading treatment as
+ * the link columns, which is what makes the right-hand grid feel
+ * balanced in the redesigned top zone.
+ */
+function ContactColumn() {
+  return (
+    <div>
+      <h4 className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">
+        Contact
+      </h4>
+      <ul className="mt-4 space-y-3 text-sm text-white/75">
+        <li className="flex items-center gap-3">
+          <PhoneIcon className="h-4 w-4 flex-none text-white/60" />
+          <a href="tel:+1000000000" className="transition hover:text-white">
+            +1 000 000000
+          </a>
+        </li>
+        <li className="flex items-center gap-3">
+          <MailIcon className="h-4 w-4 flex-none text-white/60" />
+          <a
+            href="mailto:email@address.here"
+            className="transition hover:text-white"
+          >
+            email@address.here
+          </a>
+        </li>
+        <li className="flex items-center gap-3">
+          <PinIcon className="h-4 w-4 flex-none text-white/60" />
+          <span>Address Here</span>
+        </li>
+      </ul>
+    </div>
   );
 }
 
@@ -242,7 +317,7 @@ function SocialLink({
     <Link
       href={href}
       aria-label={label}
-      className="grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-white/[0.03] text-white/70 transition hover:-translate-y-0.5 hover:border-white/40 hover:bg-white hover:text-black"
+      className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[0.04] text-white/75 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] transition hover:-translate-y-0.5 hover:border-white/40 hover:bg-white hover:text-black"
     >
       {children}
     </Link>
@@ -264,6 +339,24 @@ function ArrowRight({ className = "" }: { className?: string }) {
     >
       <path d="M5 12h14" />
       <path d="M13 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function ArrowUp({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M12 19V5" />
+      <path d="M5 12l7-7 7 7" />
     </svg>
   );
 }
