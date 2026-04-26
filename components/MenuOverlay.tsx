@@ -8,10 +8,17 @@ import { useFpsControls } from "./FullPageScroller";
 export type MenuItem = {
   /** Display label for the nav row. */
   label: string;
-  /** Step index in the FullPageScroller to jump to when clicked. */
-  step: number;
   /** Tiny subtitle shown beneath the label inside the panel. */
   hint?: string;
+  /**
+   * Step index in the FullPageScroller to jump to when clicked. Either
+   * `step` or `href` must be provided; entries with `href` route to a
+   * standalone Next.js page (e.g. /contact) instead of jumping inside
+   * the scroller.
+   */
+  step?: number;
+  /** Route to navigate to instead of triggering an in-page jump. */
+  href?: string;
 };
 
 /**
@@ -24,8 +31,11 @@ export const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { label: "Services", step: 1, hint: "What we do" },
   { label: "Industries", step: 4, hint: "Where we work" },
   { label: "Blog", step: 5, hint: "Field notes & essays" },
-  { label: "Contact", step: 6, hint: "Get in touch" },
+  { label: "Contact", href: "/contact", hint: "Get in touch" },
 ];
+
+/** Visual variant for the floating hamburger trigger. */
+export type MenuTheme = "dark" | "light";
 
 /**
  * Site-wide menu. Renders a fixed hamburger trigger that morphs into an X
@@ -38,10 +48,21 @@ export const DEFAULT_MENU_ITEMS: MenuItem[] = [
  */
 export default function MenuOverlay({
   items = DEFAULT_MENU_ITEMS,
+  theme = "dark",
 }: {
   items?: MenuItem[];
+  /**
+   * `dark` (default) is the on-black trigger used across the
+   * FullPageScroller. `light` swaps it to a dark-on-white pill so the
+   * hamburger stays visible on white pages like /contact. The slide-in
+   * panel itself stays dark in both themes.
+   */
+  theme?: MenuTheme;
 }) {
   const [open, setOpen] = useState(false);
+  // useFpsControls() returns a safe no-op shim when used outside the
+  // FullPageScroller provider (see its definition), so this is fine on
+  // standalone routes like /contact where the menu still needs to mount.
   const { goto } = useFpsControls();
 
   // Esc closes; lock body scroll while open (defense-in-depth — the
@@ -55,13 +76,25 @@ export default function MenuOverlay({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const handleNav = (step: number) => {
+  const handleStepNav = (step: number) => {
     setOpen(false);
     // Fire goto on the same tick — the panel's slide-out and the
     // scroller's section transition animate concurrently, which feels
     // snappier than waiting for the panel to fully close first.
     goto(step);
   };
+
+  // When the menu is open, the trigger sits over the dark panel, so we
+  // always want it to read as bright/inverted at that moment. When it
+  // is *closed*, the trigger floats over whatever is behind it — that's
+  // where the `theme` prop matters: dark trigger on light pages and
+  // vice-versa.
+  const closedTriggerClass =
+    theme === "light"
+      ? "border-black/15 bg-white/70 text-black hover:border-black/50 hover:bg-black hover:text-white"
+      : "border-white/30 bg-black/40 text-white hover:border-white/70 hover:bg-white hover:text-black";
+  const openTriggerClass =
+    "border-white/40 bg-white/10 text-white hover:border-white/70 hover:bg-white hover:text-black";
 
   return (
     <>
@@ -74,7 +107,9 @@ export default function MenuOverlay({
         aria-expanded={open}
         aria-controls="site-menu-panel"
         data-menu-overlay
-        className="fixed right-4 top-4 z-[70] grid h-11 w-11 place-items-center rounded-full border border-white/30 bg-black/40 text-white backdrop-blur-md transition-colors duration-200 hover:border-white/70 hover:bg-white hover:text-black sm:right-6 sm:top-6 sm:h-12 sm:w-12"
+        className={`fixed right-4 top-4 z-[70] grid h-11 w-11 place-items-center rounded-full border backdrop-blur-md transition-colors duration-200 sm:right-6 sm:top-6 sm:h-12 sm:w-12 ${
+          open ? openTriggerClass : closedTriggerClass
+        }`}
       >
         <span className="relative h-3 w-5">
           <span
@@ -145,29 +180,12 @@ export default function MenuOverlay({
           {/* Nav list */}
           <nav className="mt-12 flex-1 sm:mt-16">
             <ul className="space-y-1">
-              {items.map((item, i) => (
-                <li
-                  key={item.label}
-                  style={{
-                    // Shorter duration + tighter stagger keeps the open feel
-                    // snappy. willChange + translate3d push each row onto its
-                    // own compositor layer so the browser doesn't repaint the
-                    // panel for every frame of the cascade.
-                    transition:
-                      "opacity 320ms ease-out, transform 320ms ease-out",
-                    transitionDelay: open ? `${80 + i * 45}ms` : "0ms",
-                    opacity: open ? 1 : 0,
-                    transform: open
-                      ? "translate3d(0,0,0)"
-                      : "translate3d(20px,0,0)",
-                    willChange: "transform, opacity",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleNav(item.step)}
-                    className="group flex w-full items-baseline gap-5 border-b border-white/[0.08] py-4 text-left transition-colors duration-300 hover:border-white/30 sm:py-5"
-                  >
+              {items.map((item, i) => {
+                // Common visual content for both the in-page <button>
+                // and the route-style <Link> branches below — kept as
+                // an inline render to avoid drift between the two.
+                const rowInner = (
+                  <>
                     <span className="tabular-nums text-[10px] font-medium uppercase tracking-[0.3em] text-white/35">
                       {String(i + 1).padStart(2, "0")}
                     </span>
@@ -187,9 +205,49 @@ export default function MenuOverlay({
                     >
                       <ArrowRight className="h-5 w-5" />
                     </span>
-                  </button>
-                </li>
-              ))}
+                  </>
+                );
+                const rowClass =
+                  "group flex w-full items-baseline gap-5 border-b border-white/[0.08] py-4 text-left transition-colors duration-300 hover:border-white/30 sm:py-5";
+
+                return (
+                  <li
+                    key={item.label}
+                    style={{
+                      // Shorter duration + tighter stagger keeps the open feel
+                      // snappy. willChange + translate3d push each row onto its
+                      // own compositor layer so the browser doesn't repaint the
+                      // panel for every frame of the cascade.
+                      transition:
+                        "opacity 320ms ease-out, transform 320ms ease-out",
+                      transitionDelay: open ? `${80 + i * 45}ms` : "0ms",
+                      opacity: open ? 1 : 0,
+                      transform: open
+                        ? "translate3d(0,0,0)"
+                        : "translate3d(20px,0,0)",
+                      willChange: "transform, opacity",
+                    }}
+                  >
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        className={rowClass}
+                      >
+                        {rowInner}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleStepNav(item.step ?? 0)}
+                        className={rowClass}
+                      >
+                        {rowInner}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 

@@ -122,7 +122,7 @@ export default function Footer() {
                 { label: "Home", href: "#" },
                 { label: "Services", href: "#" },
                 { label: "Blogs", href: "#" },
-                { label: "Contact Us", href: "#" },
+                { label: "Contact Us", href: "/contact" },
               ]}
             />
             <FooterColumn
