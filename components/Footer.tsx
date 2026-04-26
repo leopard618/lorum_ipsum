@@ -5,15 +5,16 @@ import { useFpsControls } from "./FullPageScroller";
 
 export default function Footer() {
   return (
-    // The footer is intentionally *natural-height* now — no
-    // `min-h-full`, no `flex-1` absorber. The parent dock slide is
-    // `maxHeight: slideHeight`, so the dock collapses to whatever
-    // height the footer reports, and the FullPageScroller pops the
-    // dock up against the bottom of the viewport. That keeps the
-    // social bar in view (it was previously falling below the fold
-    // when we forced the footer to fill 100% of the slide) and reads
-    // as the compact, dock-style footer the design called for.
-    <footer className="relative flex flex-col overflow-hidden bg-neutral-950 text-white">
+    // Mobile: natural-height (footer hugs its content so phones see
+    // the compact stack — newsletter, nav, social bar — without an
+    // oversized empty band).
+    // Desktop: `lg:min-h-[78vh]` so the dock pop-up rises higher up
+    // the viewport (covers ~3/4 of the screen instead of just the
+    // bottom third), with the previous Blog slide peeking above. The
+    // watermark wrapper carries `lg:flex-1` so the extra height gets
+    // absorbed there as breathing room around "LORUM IPSUM" rather
+    // than as a dead gap above the bottom bar.
+    <footer className="relative flex flex-col overflow-hidden bg-neutral-950 text-white lg:min-h-[78vh]">
       {/* top accent line */}
       <div
         aria-hidden
@@ -146,9 +147,9 @@ export default function Footer() {
       <div
         data-reveal
         style={{ transitionDelay: "120ms" }}
-        className="relative z-[1] mx-auto hidden w-full max-w-7xl border-t border-white/10 px-6 py-5 sm:mt-9 sm:block sm:px-12 sm:py-6 lg:px-16"
+        className="relative z-[1] mx-auto hidden w-full max-w-7xl items-center border-t border-white/10 px-6 py-5 sm:mt-9 sm:block sm:px-12 sm:py-6 lg:flex lg:flex-1 lg:px-16 lg:py-10"
       >
-        <div className="group relative">
+        <div className="group relative w-full">
           <div
             className="select-none whitespace-nowrap text-center text-[6vw] font-extrabold leading-[0.95] tracking-tight text-transparent lg:text-[5vw]"
             style={{ WebkitTextStroke: "1px rgba(255,255,255,0.18)" }}
