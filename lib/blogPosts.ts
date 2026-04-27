@@ -42,10 +42,32 @@ export type BlogPost = {
   authorRole?: string;
   date: string;
   readTime: string;
+  /**
+   * Cover photo URL used by the /blog index (featured hero + grid
+   * cards) and the /blog/[slug] detail hero. We host these on
+   * Unsplash; remote loading is enabled in next.config.ts.
+   */
+  image: string;
+  /** Alt text describing the cover photo for screen readers / no-JS. */
+  imageAlt: string;
+  /**
+   * Legacy SVG art variant — kept for backward compatibility with the
+   * older PostArt-based renderer. New posts should set `image` and can
+   * leave `art` as any valid variant; nothing actively reads it.
+   */
   art: ArtVariant;
   featured?: boolean;
   body: BodyBlock[];
 };
+
+/**
+ * Unsplash query string applied to every cover photo. Picks a sensible
+ * width, JPEG-XL/AVIF auto-format, 80% quality, and `fit=crop` so the
+ * crop is consistent across landscape (hero) and portrait (grid card)
+ * usages — Next/Image handles the actual size variants from there.
+ */
+const IMG = (id: string): string =>
+  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1600&q=80`;
 
 export const posts: BlogPost[] = [
   {
@@ -59,6 +81,9 @@ export const posts: BlogPost[] = [
     authorRole: "Editorial",
     date: "Apr 2026",
     readTime: "8 min read",
+    image: IMG("1505740420928-5e560c06d30e"),
+    imageAlt:
+      "A pair of premium black over-ear headphones photographed on a clean studio background.",
     art: "machine",
     featured: true,
     body: [
@@ -109,7 +134,11 @@ export const posts: BlogPost[] = [
     authorRole: "Design Lead",
     date: "Mar 2026",
     readTime: "6 min read",
+    image: IMG("1620712943543-bcc4688e7485"),
+    imageAlt:
+      "An atmospheric, softly-lit abstract scene suggesting an interface beyond the screen.",
     art: "post-screen",
+    featured: true,
     body: [
       {
         type: "p",
@@ -155,6 +184,9 @@ export const posts: BlogPost[] = [
     authorRole: "Principal Engineer",
     date: "Mar 2026",
     readTime: "10 min read",
+    image: IMG("1555066931-4365d14bab8c"),
+    imageAlt:
+      "Source code displayed on a dark editor with vivid syntax highlighting.",
     art: "code",
     body: [
       {
@@ -200,6 +232,9 @@ export const posts: BlogPost[] = [
     authorRole: "ML Strategist",
     date: "Feb 2026",
     readTime: "7 min read",
+    image: IMG("1518770660439-4636190af475"),
+    imageAlt:
+      "A close-up of a circuit board with intricate copper traces and components.",
     art: "edge",
     body: [
       {
@@ -240,6 +275,9 @@ export const posts: BlogPost[] = [
     authorRole: "Staff Product Manager",
     date: "Feb 2026",
     readTime: "5 min read",
+    image: IMG("1517336714731-489689fd1ca8"),
+    imageAlt:
+      "A minimalist workspace with a single computer on a clean desk, soft daylight.",
     art: "slow",
     body: [
       {
@@ -272,7 +310,11 @@ export const posts: BlogPost[] = [
     authorRole: "Research Director",
     date: "Jan 2026",
     readTime: "9 min read",
+    image: IMG("1581090700227-1e37b190418e"),
+    imageAlt:
+      "An abstract architectural form in soft light suggesting ambient, ever-present technology.",
     art: "ambient",
+    featured: true,
     body: [
       {
         type: "p",

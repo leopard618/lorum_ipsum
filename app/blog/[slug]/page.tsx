@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import MenuOverlay from "@/components/MenuOverlay";
-import PostArt from "@/components/PostArt";
 import {
   getAdjacent,
   getPostBySlug,
@@ -121,15 +121,17 @@ export default async function BlogDetail({
         </div>
       </section>
 
-      {/* HERO ART — dark scene framed inside a rounded card on the
-          white page. Mirrors how the /blog index cards present their
-          PostArt. */}
+      {/* HERO PHOTO — full-width on mobile, contained on desktop.
+          Mirrors how the /blog index cards present their cover photo. */}
       <section className="relative z-[1] mx-auto mt-10 w-full max-w-5xl px-6 sm:mt-14 sm:px-10 lg:mt-16 lg:px-0">
         <div className="relative aspect-[16/8] overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-950 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.25)] sm:aspect-[16/7]">
-          <PostArt
-            variant={post.art}
-            uid={`hero-${post.slug}`}
-            className="absolute inset-0 h-full w-full"
+          <Image
+            src={post.image}
+            alt={post.imageAlt}
+            fill
+            priority
+            sizes="(min-width: 1024px) 1024px, 100vw"
+            className="object-cover"
           />
         </div>
       </section>
