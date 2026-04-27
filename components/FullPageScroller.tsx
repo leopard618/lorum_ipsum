@@ -91,8 +91,8 @@ export default function FullPageScroller({
   children?: ReactNode;
   /**
    * Visual palette for the scroller chrome itself — the outer
-   * background visible during transitions, the right-side dot
-   * navigation, and the bottom "Scroll" hint.
+   * background visible during transitions and the right-side dot
+   * navigation.
    *
    * - `"dark"` (default): black canvas with white chrome — used by the
    *   home page where every slide has its own dark hero.
@@ -669,25 +669,6 @@ export default function FullPageScroller({
           />
         ))}
       </nav>
-
-        {/* scroll hint. Lifted on phones so it clears the mobile browser's
-            bottom address-bar / system nav; reverts to the original tight
-            placement at sm+. */}
-        <div
-          className={`pointer-events-none fixed bottom-20 left-1/2 z-50 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.35em] transition-opacity duration-500 sm:bottom-6 ${
-            isLight ? "text-neutral-500" : "text-white/55"
-          } ${step === 0 ? "opacity-100" : "opacity-0"}`}
-        >
-          <span className="inline-flex items-center gap-3">
-            <span
-              className={`h-px w-8 ${isLight ? "bg-neutral-400" : "bg-white/50"}`}
-            />{" "}
-            Scroll
-            <span
-              className={`h-px w-8 ${isLight ? "bg-neutral-400" : "bg-white/50"}`}
-            />
-          </span>
-        </div>
 
         {/* Anything passed as children renders on top of every slide and
             inherits the controls context — used for the global menu. */}

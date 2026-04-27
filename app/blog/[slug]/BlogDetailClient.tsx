@@ -106,7 +106,7 @@ export default function BlogDetailClient({
 
 function PageHeader({ post }: { post: BlogPost }) {
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-30 flex items-center justify-between gap-4 px-6 pt-5 sm:px-10 sm:pt-7 lg:px-16 lg:pt-9">
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-30 flex items-center justify-between gap-4 pl-6 pr-20 pt-5 sm:pl-10 sm:pr-24 sm:pt-7 lg:pl-16 lg:pr-28 lg:pt-9">
       <Link
         href="/"
         className="pointer-events-auto text-[12px] font-semibold tracking-[0.32em] text-neutral-900 transition hover:text-violet-600 sm:text-sm"
