@@ -340,6 +340,225 @@ export const posts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: "the-reasoning-bottleneck",
+    category: "Engineering · AI",
+    title: "The Reasoning Bottleneck",
+    poster: { lineOne: "The Reasoning", lineTwo: "Bottleneck" },
+    excerpt:
+      "Bigger models do not always think harder. We unpack the structural limits of frontier reasoning, and the small product moves that punch above their token budget.",
+    author: "Marcus Reed",
+    authorRole: "Staff ML Engineer",
+    date: "Apr 2026",
+    readTime: "7 min read",
+    image: IMG("1555066931-4365d14bab8c"),
+    imageAlt:
+      "Editor displaying source code with vivid syntax highlighting on a dark background.",
+    art: "code",
+    body: [
+      {
+        type: "p",
+        text: "There is a quiet truth inside every frontier model launch: the reasoning curve has shape. Doubling parameters once gave us double the magic. It does not anymore. The juice is somewhere else, and the teams who notice it first will ship the next decade of useful AI.",
+      },
+      { type: "h2", text: "Where the wall actually sits" },
+      {
+        type: "p",
+        text: "It sits in working memory. A model can read a million tokens but only really hold a few thousand of them in active focus while it composes a response. Beyond that, the conversation gets thinner; the references get fuzzier; the answer gets confidently wrong.",
+      },
+      {
+        type: "quote",
+        text: "We are not training reasoning. We are training the appearance of reasoning, and shipping the difference.",
+      },
+      {
+        type: "p",
+        text: "The product move that beats this is unsexy: shrink the prompt. Aggressively. Strip context until the system is reasoning over the smallest possible scaffold that still answers the question. The teams who do this consistently ship features that feel sharper on every model upgrade, instead of bloating with each release.",
+      },
+    ],
+  },
+  {
+    slug: "refactor-with-confidence",
+    category: "Engineering · Tooling",
+    title: "Refactor With Confidence",
+    poster: { lineOne: "Refactor With", lineTwo: "Confidence" },
+    excerpt:
+      "Large refactors are still scary, even with an AI pair on your shoulder. A small kit of habits we use to ship structural change without inheriting a week of regressions.",
+    author: "Theo Park",
+    authorRole: "Principal Engineer",
+    date: "Apr 2026",
+    readTime: "6 min read",
+    image: IMG("1518770660439-4636190af475"),
+    imageAlt:
+      "A close-up of a circuit board with intricate copper traces and components.",
+    art: "edge",
+    body: [
+      {
+        type: "p",
+        text: "We refactor every Tuesday. Not because we love it — because the alternative is the slow, irrecoverable kind of decay where suddenly you cannot ship a button without rewriting four modules. The trick is making the refactor cheap, not making it brave.",
+      },
+      { type: "h2", text: "Three habits that bought us our Tuesdays" },
+      {
+        type: "list",
+        items: [
+          "Name the seam before you cut it. If you cannot describe the boundary in one sentence, the refactor is not ready.",
+          "Land in two PRs, never one. The first introduces the new shape next to the old; the second deletes the old. Reviewers can actually reason about both.",
+          "Hold the contract sacred. Tests at the seam are the only thing standing between you and a long Wednesday.",
+        ],
+      },
+      {
+        type: "p",
+        text: "AI assistants have made this faster, not safer. They will gladly produce a thousand lines of structurally consistent code that quietly violates an invariant only a senior engineer has internalised. The habits do not change. The volume does.",
+      },
+    ],
+  },
+  {
+    slug: "the-slow-click",
+    category: "Product · UX",
+    title: "The Slow Click",
+    poster: { lineOne: "The Slow", lineTwo: "Click" },
+    excerpt:
+      "Some interactions are worth slowing down. We argue for a small, stubborn category of UI that asks the user to mean it — and the trust that compounds when you do.",
+    author: "Priya Singh",
+    authorRole: "Product Lead",
+    date: "Mar 2026",
+    readTime: "5 min read",
+    image: IMG("1517336714731-489689fd1ca8"),
+    imageAlt:
+      "A minimalist workspace with a single computer on a clean desk, soft daylight.",
+    art: "slow",
+    body: [
+      {
+        type: "p",
+        text: "Speed is the default brief in product. Faster checkout, faster onboarding, faster everything. The brief is mostly right. But there is a small, stubborn category of decisions where speed is the bug, not the feature — and getting those few right is worth more than shaving 80ms off the rest.",
+      },
+      { type: "h2", text: "When to slow the click" },
+      {
+        type: "p",
+        text: "Slow the click whenever the action is destructive, irreversible, financial, or social. Add a half-second of friction. Add a confirmation. Add a sentence that explains what is about to happen, in plain English, in the present tense. The cost is invisible. The save rate, when something goes wrong, is enormous.",
+      },
+      {
+        type: "quote",
+        text: "Trust compounds at the speed of the slow click. Always has.",
+      },
+      {
+        type: "p",
+        text: "Users do not punish you for the deliberate moments. They remember them. They trust the surface a little more after each one. The product feels less like a slot machine and more like a tool — and tools are what people pay for.",
+      },
+    ],
+  },
+  {
+    slug: "field-notes-from-the-edge",
+    category: "Field Notes · AI",
+    title: "Field Notes From the Edge",
+    poster: { lineOne: "Field Notes", lineTwo: "From the Edge" },
+    excerpt:
+      "Six months of shipping on-device inference, summarised by the engineers who broke things. Battery, latency, model swaps — what worked, what didn't, and what we'd do differently.",
+    author: "Lina Vasquez",
+    authorRole: "ML Strategist",
+    date: "Mar 2026",
+    readTime: "8 min read",
+    image: IMG("1581090700227-1e37b190418e"),
+    imageAlt:
+      "An abstract architectural form in soft light suggesting ambient, ever-present technology.",
+    art: "ambient",
+    body: [
+      {
+        type: "p",
+        text: "We spent the last two quarters putting models on phones. Real models, in production, in the hands of users who do not care about parameter counts. These are the field notes — the unglamorous middle of the work, between the demo and the launch.",
+      },
+      { type: "h2", text: "What surprised us" },
+      {
+        type: "list",
+        items: [
+          "Battery was a non-issue. Thermals were the killer. Sustained inference for more than 90 seconds heated the device enough that the OS throttled us before the user noticed anything else.",
+          "Model swaps shipped fine. Tokenizer swaps did not. A quietly-changed tokenizer broke a year of cached prompts in production before the rollout monitor caught it.",
+          "Users did not ask for offline. They noticed it once, on a plane, and then expected it forever.",
+        ],
+      },
+      {
+        type: "p",
+        text: "If we did this again, we would invest first in eval rigs that run on the actual device, not on a server pretending to be one. Half of our incidents traced back to differences a desktop simulator silently smoothed over.",
+      },
+    ],
+  },
+  {
+    slug: "against-productivity-theater",
+    category: "Opinion · Work",
+    title: "Against Productivity Theater",
+    poster: { lineOne: "Against", lineTwo: "Productivity Theater" },
+    excerpt:
+      "Dashboards that measure motion are not the same as dashboards that measure work. A blunt take on the metrics we keep shipping for managers who do not actually want to know.",
+    author: "Kenji Ito",
+    authorRole: "Staff Product Manager",
+    date: "Feb 2026",
+    readTime: "4 min read",
+    image: IMG("1505740420928-5e560c06d30e"),
+    imageAlt:
+      "A pair of premium black over-ear headphones photographed on a clean studio background.",
+    art: "machine",
+    body: [
+      {
+        type: "p",
+        text: "There is a category of internal tool whose only purpose is to make managers feel less alone on Sunday night. It is dressed up as analytics. It is, mostly, theater. And it is choking the teams it pretends to support.",
+      },
+      { type: "h2", text: "What productivity theater looks like" },
+      {
+        type: "p",
+        text: "Lines of code per engineer. Tickets closed per week. Slack messages sent in business hours. Each of these metrics is, individually, defensible. Stacked into a dashboard, they create a fiction: that motion is the same as progress, that volume is the same as value, that the loudest team member is the most useful one.",
+      },
+      {
+        type: "quote",
+        text: "If the dashboard is mostly green, the dashboard is mostly lying.",
+      },
+      {
+        type: "p",
+        text: "The cure is not better metrics. It is fewer of them — and a willingness to read the actual work. A senior leader who can name three real things their team shipped this month does not need a productivity dashboard. The leaders who cannot are the ones the dashboard cannot save.",
+      },
+    ],
+  },
+  {
+    slug: "memory-as-interface",
+    category: "Research · AI",
+    title: "Memory as Interface",
+    poster: { lineOne: "Memory as", lineTwo: "Interface" },
+    excerpt:
+      "When the system remembers, the interface gets smaller. Notes from a research sprint on what users will accept, what they reject, and how design changes when the assistant does not forget.",
+    author: "Lukas Becker",
+    authorRole: "Senior Researcher",
+    date: "Feb 2026",
+    readTime: "7 min read",
+    image: IMG("1620712943543-bcc4688e7485"),
+    imageAlt:
+      "An atmospheric, softly-lit abstract scene suggesting an interface beyond the screen.",
+    art: "post-screen",
+    body: [
+      {
+        type: "p",
+        text: "We spent a research sprint asking the same question in twenty different ways: when an AI assistant remembers something about you, what do you want it to do with that memory, and what do you absolutely not want it to do? The answers were sharper than we expected.",
+      },
+      { type: "h2", text: "What users will accept" },
+      {
+        type: "list",
+        items: [
+          "Recall on demand. \u201cYou told me last week …\u201d is welcome, even charming, when the user pulled the thread.",
+          "Style memory. The assistant matching tone, format, brevity — every participant approved, even the privacy-anxious ones.",
+          "Project memory. Continuity across sessions on a defined task is a strict upgrade. Nobody asked for the alternative.",
+        ],
+      },
+      { type: "h2", text: "What they reject, hard" },
+      {
+        type: "p",
+        text: "Surprise recall. Memory that arrives unbidden, especially in a public or shared context, breaks the illusion that the assistant is on the user's side. The fix is small but absolute: never volunteer memory the user has not invited into the conversation.",
+      },
+      {
+        type: "quote",
+        text: "Memory you cannot inspect is surveillance with extra steps.",
+      },
+      {
+        type: "p",
+        text: "The design implication is simple. Build the inspector before you build the recall. If the user cannot see what the system remembers — and edit it, in plain text, in under five seconds — the feature should not ship.",
+      },
+    ],
+  },
 ];
 
 /** Lookup helper used by the dynamic detail route. */

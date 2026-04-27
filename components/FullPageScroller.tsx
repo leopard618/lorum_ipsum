@@ -80,6 +80,7 @@ type StepMeta = { slide: number; sub: number; label: string };
 export default function FullPageScroller({
   slides,
   children,
+  theme = "dark",
 }: {
   slides: Slide[];
   /**
@@ -88,6 +89,18 @@ export default function FullPageScroller({
    * anything that needs `useFpsControls()` to drive navigation.
    */
   children?: ReactNode;
+  /**
+   * Visual palette for the scroller chrome itself — the outer
+   * background visible during transitions, the right-side dot
+   * navigation, and the bottom "Scroll" hint.
+   *
+   * - `"dark"` (default): black canvas with white chrome — used by the
+   *   home page where every slide has its own dark hero.
+   * - `"light"`: white canvas with neutral-900 chrome — used by the
+   *   blog page so the scroller doesn't flash a black gap between two
+   *   white sections during transitions.
+   */
+  theme?: "dark" | "light";
 }) {
   const stepMap = useMemo<StepMeta[]>(() => {
     const map: StepMeta[] = [];
@@ -503,10 +516,12 @@ export default function FullPageScroller({
   const slideHeight: string | number =
     measurements.viewportH > 0 ? measurements.viewportH : "100dvh";
 
+  const isLight = theme === "light";
+
   return (
     <FpsControlsContext.Provider value={controls}>
       <div
-        className="fixed inset-x-0 top-0 overflow-hidden bg-black"
+        className={`fixed inset-x-0 top-0 overflow-hidden ${isLight ? "bg-white" : "bg-black"}`}
         style={{ height: slideHeight }}
       >
         <div
@@ -644,8 +659,12 @@ export default function FullPageScroller({
             aria-current={i === step}
             className={`block rounded-full transition-all duration-500 ${
               i === step
-                ? "h-9 w-[3px] bg-white"
-                : "h-[3px] w-[3px] bg-white/40 hover:bg-white/70"
+                ? `h-9 w-[3px] ${isLight ? "bg-neutral-900" : "bg-white"}`
+                : `h-[3px] w-[3px] ${
+                    isLight
+                      ? "bg-neutral-300 hover:bg-neutral-600"
+                      : "bg-white/40 hover:bg-white/70"
+                  }`
             }`}
           />
         ))}
@@ -655,13 +674,18 @@ export default function FullPageScroller({
             bottom address-bar / system nav; reverts to the original tight
             placement at sm+. */}
         <div
-          className={`pointer-events-none fixed bottom-20 left-1/2 z-50 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.35em] text-white/55 transition-opacity duration-500 sm:bottom-6 ${
-            step === 0 ? "opacity-100" : "opacity-0"
-          }`}
+          className={`pointer-events-none fixed bottom-20 left-1/2 z-50 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.35em] transition-opacity duration-500 sm:bottom-6 ${
+            isLight ? "text-neutral-500" : "text-white/55"
+          } ${step === 0 ? "opacity-100" : "opacity-0"}`}
         >
           <span className="inline-flex items-center gap-3">
-            <span className="h-px w-8 bg-white/50" /> Scroll
-            <span className="h-px w-8 bg-white/50" />
+            <span
+              className={`h-px w-8 ${isLight ? "bg-neutral-400" : "bg-white/50"}`}
+            />{" "}
+            Scroll
+            <span
+              className={`h-px w-8 ${isLight ? "bg-neutral-400" : "bg-white/50"}`}
+            />
           </span>
         </div>
 

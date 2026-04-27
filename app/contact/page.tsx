@@ -346,16 +346,35 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="group inline-flex items-center justify-center gap-3 rounded-full bg-neutral-900 px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-neutral-900 px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <span>
+                {/* White "lightning" bar — soft gradient that rakes
+                    across the dark button continuously. Same animation
+                    as the row-shimmer on the Industries list, just
+                    repainted white so it shines on this CTA instead of
+                    the previous violet hover wash. The label + arrow
+                    sit above it via `relative`. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 overflow-hidden rounded-full"
+                >
+                  <span
+                    className="animate-row-shimmer absolute inset-y-0 left-0 w-1/3"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)",
+                    }}
+                  />
+                </span>
+
+                <span className="relative">
                   {status === "submitting"
                     ? "Sending…"
                     : status === "success"
                       ? "Sent"
                       : "Send message"}
                 </span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
 
