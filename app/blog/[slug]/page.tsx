@@ -21,6 +21,10 @@ import {
  *   1. The home page Blog slide ("Read article" / clicking the title).
  *   2. The /blog index — every card is a link straight to here.
  *   3. The previous/next pager at the bottom of this page.
+ *
+ * Visual contract: same white/black/violet palette as /contact and the
+ * /blog index. Hero PostArt keeps its dark scene as a deliberate
+ * contrast block on the white canvas.
  */
 
 // Build a static page per post at compile-time.
@@ -55,83 +59,73 @@ export default async function BlogDetail({
   const adjacent = getAdjacent(slug);
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-neutral-950 text-white">
-      {/* Ambient background — same vocabulary as /blog index so the
-          two pages feel like one continuous space. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-40 top-0 h-[28rem] w-[28rem] rounded-full bg-violet-500/15 blur-[140px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-40 top-1/2 h-[28rem] w-[28rem] rounded-full bg-fuchsia-500/10 blur-[140px]"
-      />
+    <main className="relative min-h-screen overflow-x-hidden bg-white text-neutral-900">
+      {/* Subtle dot grid — same idiom as /contact and /blog. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)",
+            "radial-gradient(circle at 1px 1px, #000 1px, transparent 0)",
           backgroundSize: "32px 32px",
         }}
       />
 
-      {/* Header — brand + breadcrumb. Mirrors the contact / index pages. */}
+      {/* Header — brand + breadcrumb back to the journal. */}
       <header className="relative z-[1] mx-auto flex w-full max-w-7xl items-center justify-between px-6 pt-6 sm:px-10 sm:pt-8 lg:px-16 lg:pt-10">
         <Link
           href="/"
-          className="text-sm font-semibold tracking-[0.28em] text-white hover:text-violet-300"
+          className="text-sm font-semibold tracking-[0.28em] text-neutral-900 transition hover:text-violet-600"
         >
           LORUM IPSUM
         </Link>
         <Link
           href="/blog"
-          className="hidden items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60 transition hover:text-white sm:inline-flex"
+          className="hidden items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-neutral-600 transition hover:text-neutral-900 sm:inline-flex"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           The Journal
         </Link>
       </header>
 
-      <MenuOverlay theme="dark" />
+      <MenuOverlay theme="light" />
 
-      {/* HERO — eyebrow, title, excerpt, byline, then the SVG art. The
-          art is generous (16:7-ish on desktop) so the article opens with
-          a clear visual anchor. */}
+      {/* HERO — eyebrow, title, excerpt, byline. */}
       <section className="relative z-[1] mx-auto w-full max-w-4xl px-6 pt-12 sm:px-10 sm:pt-16 lg:px-0 lg:pt-20">
         <Link
           href="/blog"
-          className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-violet-300/80 transition hover:text-violet-200"
+          className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-neutral-700 transition hover:text-violet-600"
         >
           <span className="flex items-center gap-1" aria-hidden>
-            <span className="block h-2 w-4 bg-white/15" />
-            <span className="block h-2 w-4 bg-white/35" />
-            <span className="block h-2 w-4 bg-violet-400" />
+            <span className="block h-2 w-4 bg-neutral-300" />
+            <span className="block h-2 w-4 bg-neutral-500" />
+            <span className="block h-2 w-4 bg-violet-500" />
           </span>
           {post.category}
         </Link>
 
-        <h1 className="mt-6 text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[0.98] tracking-tight text-white">
+        <h1 className="mt-6 text-[clamp(2.25rem,6vw,4.75rem)] font-bold leading-[0.98] tracking-tight text-neutral-900">
           {post.title}
         </h1>
 
-        <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/70 sm:text-xl">
+        <p className="mt-6 max-w-3xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
           {post.excerpt}
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/10 pt-6 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/55">
+        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-neutral-200 pt-6 text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-600">
           <ByLine post={post} />
-          <span aria-hidden className="h-1 w-1 rounded-full bg-white/30" />
+          <span aria-hidden className="h-1 w-1 rounded-full bg-neutral-300" />
           <span>{post.date}</span>
-          <span aria-hidden className="h-1 w-1 rounded-full bg-white/30" />
+          <span aria-hidden className="h-1 w-1 rounded-full bg-neutral-300" />
           <span>{post.readTime}</span>
         </div>
       </section>
 
-      {/* HERO ART — full-width on mobile, contained on desktop so it
-          mirrors the article column width. */}
+      {/* HERO ART — dark scene framed inside a rounded card on the
+          white page. Mirrors how the /blog index cards present their
+          PostArt. */}
       <section className="relative z-[1] mx-auto mt-10 w-full max-w-5xl px-6 sm:mt-14 sm:px-10 lg:mt-16 lg:px-0">
-        <div className="relative aspect-[16/8] overflow-hidden rounded-3xl border border-white/10 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.65)] sm:aspect-[16/7]">
+        <div className="relative aspect-[16/8] overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-950 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.25)] sm:aspect-[16/7]">
           <PostArt
             variant={post.art}
             uid={`hero-${post.slug}`}
@@ -140,8 +134,8 @@ export default async function BlogDetail({
         </div>
       </section>
 
-      {/* ARTICLE BODY — narrow column for readability, with a small
-          accent line introducing each section heading. */}
+      {/* ARTICLE BODY — narrow column for readability with violet
+          accents on h2 / quote / list bullets. */}
       <article className="relative z-[1] mx-auto w-full max-w-3xl px-6 py-16 sm:px-10 sm:py-20 lg:px-0 lg:py-24">
         <div className="space-y-8">
           {post.body.map((block, i) => (
@@ -150,13 +144,13 @@ export default async function BlogDetail({
         </div>
 
         {/* Article footer — author signoff. */}
-        <div className="mt-16 flex flex-col gap-3 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-16 flex flex-col gap-3 border-t border-neutral-200 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-white/55">Written by</p>
-            <p className="mt-1 text-base font-semibold text-white">
+            <p className="text-sm text-neutral-500">Written by</p>
+            <p className="mt-1 text-base font-semibold text-neutral-900">
               {post.author}
               {post.authorRole && (
-                <span className="ml-2 text-sm font-normal text-white/55">
+                <span className="ml-2 text-sm font-normal text-neutral-500">
                   · {post.authorRole}
                 </span>
               )}
@@ -164,7 +158,7 @@ export default async function BlogDetail({
           </div>
           <Link
             href="/blog"
-            className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/80 transition hover:-translate-y-0.5 hover:border-white hover:bg-white hover:text-black"
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-neutral-300 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-700 transition hover:-translate-y-0.5 hover:border-neutral-900 hover:bg-neutral-900 hover:text-white"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             All articles
@@ -176,7 +170,7 @@ export default async function BlogDetail({
           end-to-end without bouncing back to the index. */}
       {adjacent && (
         <section className="relative z-[1] mx-auto w-full max-w-7xl px-6 pb-20 sm:px-10 lg:px-16 lg:pb-28">
-          <div className="grid grid-cols-1 gap-4 border-t border-white/10 pt-10 sm:grid-cols-2 sm:gap-6">
+          <div className="grid grid-cols-1 gap-4 border-t border-neutral-200 pt-10 sm:grid-cols-2 sm:gap-6">
             <PagerCard direction="prev" post={adjacent.prev} />
             <PagerCard direction="next" post={adjacent.next} />
           </div>
@@ -184,16 +178,16 @@ export default async function BlogDetail({
       )}
 
       {/* Bottom band */}
-      <footer className="relative z-[1] mx-auto w-full max-w-7xl border-t border-white/10 px-6 py-8 sm:px-10 lg:px-16">
+      <footer className="relative z-[1] mx-auto w-full max-w-7xl border-t border-neutral-200 px-6 py-8 sm:px-10 lg:px-16">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <Link
             href="/"
-            className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-white/70 transition hover:text-white"
+            className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-700 transition hover:text-neutral-900"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             Back to home
           </Link>
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-neutral-500">
             © {new Date().getFullYear()} Lorum Ipsum. All rights reserved.
           </p>
         </div>
@@ -214,28 +208,28 @@ function BodyRenderer({ block }: { block: BodyBlock }) {
   switch (block.type) {
     case "h2":
       return (
-        <h2 className="relative mt-6 pt-2 text-2xl font-semibold leading-tight tracking-tight text-white sm:text-3xl">
+        <h2 className="relative mt-6 pt-2 text-2xl font-semibold leading-tight tracking-tight text-neutral-900 sm:text-3xl">
           <span
             aria-hidden
-            className="absolute left-0 top-0 h-px w-12 bg-violet-400/70"
+            className="absolute left-0 top-0 h-px w-12 bg-violet-500"
           />
           {block.text}
         </h2>
       );
     case "p":
       return (
-        <p className="text-base leading-[1.85] text-white/75 sm:text-[17px]">
+        <p className="text-base leading-[1.85] text-neutral-700 sm:text-[17px]">
           {block.text}
         </p>
       );
     case "quote":
       return (
-        <blockquote className="my-4 border-l-2 border-violet-400/70 pl-6">
-          <p className="text-xl font-medium leading-snug text-white sm:text-2xl">
+        <blockquote className="my-4 border-l-2 border-violet-500 pl-6">
+          <p className="text-xl font-medium leading-snug text-neutral-900 sm:text-2xl">
             &ldquo;{block.text}&rdquo;
           </p>
           {block.cite && (
-            <footer className="mt-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/55">
+            <footer className="mt-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500">
               — {block.cite}
             </footer>
           )}
@@ -243,12 +237,12 @@ function BodyRenderer({ block }: { block: BodyBlock }) {
       );
     case "list":
       return (
-        <ul className="space-y-3 text-base leading-[1.7] text-white/75 sm:text-[17px]">
+        <ul className="space-y-3 text-base leading-[1.7] text-neutral-700 sm:text-[17px]">
           {block.items.map((item, i) => (
             <li key={i} className="relative pl-7">
               <span
                 aria-hidden
-                className="absolute left-0 top-[0.55em] block h-1.5 w-3 bg-violet-400/80"
+                className="absolute left-0 top-[0.55em] block h-1.5 w-3 bg-violet-500"
               />
               {item}
             </li>
@@ -263,11 +257,11 @@ function ByLine({ post }: { post: BlogPost }) {
     <span className="inline-flex items-center gap-3">
       <span
         aria-hidden
-        className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 text-[10px] font-bold text-white"
+        className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[10px] font-bold text-white"
       >
         {initials(post.author)}
       </span>
-      <span className="text-white/80">{post.author}</span>
+      <span className="text-neutral-800">{post.author}</span>
     </span>
   );
 }
@@ -283,19 +277,19 @@ function PagerCard({
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className={`group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.05] sm:p-7 ${
+      className={`group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition hover:-translate-y-1 hover:border-neutral-300 hover:shadow-[0_18px_40px_rgba(0,0,0,0.08)] sm:p-7 ${
         isNext ? "sm:items-end sm:text-right" : ""
       }`}
     >
-      <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/45">
+      <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-neutral-500">
         {!isNext && <ArrowLeft className="h-3.5 w-3.5" />}
         {isNext ? "Next article" : "Previous article"}
         {isNext && <ArrowRight className="h-3.5 w-3.5" />}
       </span>
-      <span className="text-xl font-semibold leading-snug tracking-tight text-white transition-colors group-hover:text-violet-200 sm:text-2xl">
+      <span className="text-xl font-semibold leading-snug tracking-tight text-neutral-900 transition-colors group-hover:text-violet-700 sm:text-2xl">
         {post.title}
       </span>
-      <span className="text-xs uppercase tracking-[0.24em] text-white/45">
+      <span className="text-xs uppercase tracking-[0.24em] text-neutral-500">
         {post.author} · {post.readTime}
       </span>
     </Link>
