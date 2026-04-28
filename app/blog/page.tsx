@@ -381,10 +381,15 @@ function GridSection() {
   const changeGrid = (dir: 1 | -1) => goToGridPage(gridPage + dir);
 
   return (
+    // `relative flex min-h-full flex-col` (not `absolute inset-0`)
+    // because Section 2 now uses natural-flow portrait cards that
+    // can be taller than the viewport on shorter screens.  The
+    // parent `fps-slide` already has `overflow-y-auto`, so this
+    // wrapper just expands to fit its grid + pagination footer.
     <section
       id="all"
       aria-label="All articles"
-      className="absolute inset-0 flex flex-col bg-white text-neutral-900"
+      className="relative flex min-h-full flex-col bg-white text-neutral-900"
     >
       {/* Subtle dot grid — same as Section 1 / /contact. */}
       <div
@@ -443,14 +448,15 @@ function GridSection() {
         </div>
       </div>
 
-      {/* Grid — 3×2 on desktop, 2×3 on mobile, sized to fit the
-          viewport so all 6 cards are visible without scrolling
-          inside the section. `flex-1 min-h-0` + `grid-rows-{n}`
-          makes each row split the available height evenly so cards
-          stretch instead of overflowing. */}
-      <div className="relative z-[1] mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pb-6 pt-5 sm:px-10 sm:pb-8 sm:pt-6 lg:px-16 lg:pb-10 lg:pt-7">
+      {/* Grid — 3×2 on desktop, 2×3 on mobile.  Cards now use a
+          fixed portrait aspect ratio (image on top + title +
+          description below), so we no longer fight for vertical
+          space with `flex-1 grid-rows-{n}` — the grid lays out its
+          natural height and the parent `fps-slide` scrolls if there
+          are more rows than the viewport can show. */}
+      <div className="relative z-[1] mx-auto w-full max-w-7xl flex-1 px-6 pb-6 pt-5 sm:px-10 sm:pb-8 sm:pt-6 lg:px-16 lg:pb-10 lg:pt-7">
         {visiblePosts.length === 0 ? (
-          <div className="grid flex-1 place-items-center text-center">
+          <div className="grid place-items-center py-16 text-center">
             <div className="max-w-sm">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-neutral-400">
                 No matches
@@ -474,7 +480,7 @@ function GridSection() {
           </div>
         ) : (
           <div
-            className="grid min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-x-4 gap-y-6 transition-[opacity,transform,filter] ease-out sm:gap-x-5 sm:gap-y-7 lg:grid-cols-3 lg:grid-rows-2 lg:gap-x-6 lg:gap-y-8"
+            className="grid grid-cols-2 gap-x-4 gap-y-8 transition-[opacity,transform,filter] ease-out sm:gap-x-5 sm:gap-y-10 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-12"
             style={{
               transitionDuration: `${GRID_TRANSITION_MS}ms`,
               opacity: gridExiting ? 0 : 1,
@@ -564,10 +570,16 @@ function GridSection() {
 }
 
 /* ============================== Grid Card ============================== *
- * Stripped-down editorial card: just the cover photo (rounded) with
- * the post title sitting cleanly below it on the white canvas. No
- * overlay text, no author chip, no read-time pill — the photo speaks,
- * and the title labels.
+ * Editorial portrait card.  Photo on top with rounded corners + a
+ * small category chip overlaid bottom-right; title + 2-line
+ * description below.  Mirrors the user's reference layout (clean
+ * cards on a white canvas, photo speaks first, title labels,
+ * description gives context).
+ *
+ * Photo source is `post.image` — the journal now uses curated local
+ * cover photos for every surface (home Blog slide, featured hero,
+ * grid card, detail page), so this card no longer needs a
+ * grid-only override.
  * ----------------------------------------------------------------------- */
 
 function GridCard({
@@ -579,15 +591,21 @@ function GridCard({
    *  rather than appearing simultaneously. */
   revealDelay?: number;
 }) {
+  // First "·"-separated segment of `post.category` is what reads
+  // best inside the small overlay chip ("Featured · Culture × Tech"
+  // → just "Featured").
+  const chipLabel = (post.category.split("·")[0] ?? post.category).trim();
   return (
     <Link
       href={`/blog/${post.slug}`}
       data-reveal
       style={{ transitionDelay: `${revealDelay}ms` }}
-      className="group flex h-full min-h-0 flex-col gap-3 transition-transform duration-300 hover:-translate-y-1"
+      className="group flex flex-col gap-4 transition-transform duration-300 hover:-translate-y-1"
     >
-      {/* Cover photo */}
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl bg-neutral-900 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.45)] ring-1 ring-neutral-200 transition-shadow duration-300 group-hover:ring-neutral-300 group-hover:shadow-[0_28px_60px_-25px_rgba(0,0,0,0.45)]">
+      {/* Cover photo — fixed portrait aspect so every card on the
+          row has the same height regardless of its underlying
+          image's intrinsic dimensions. */}
+      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-200 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.45)] ring-1 ring-neutral-200 transition-shadow duration-300 group-hover:ring-neutral-300 group-hover:shadow-[0_28px_60px_-25px_rgba(0,0,0,0.45)]">
         <Image
           src={post.image}
           alt={post.imageAlt}
@@ -595,12 +613,25 @@ function GridCard({
           sizes="(min-width: 1024px) 380px, (min-width: 640px) 45vw, 50vw"
           className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
         />
+
+        {/* Category chip — small white pill overlaid bottom-right.
+            Matches the pattern in the user's reference layout where
+            each card has a tiny "DESIGN" / "ARCHITECTURE" badge. */}
+        <span className="absolute bottom-3 right-3 inline-flex items-center rounded-full bg-white/95 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.24em] text-neutral-800 shadow-sm backdrop-blur-sm sm:text-[10px]">
+          {chipLabel}
+        </span>
       </div>
 
-      {/* Title — clean text below the image */}
-      <h3 className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900 transition-colors group-hover:text-violet-600 sm:text-[15px]">
+      {/* Title */}
+      <h3 className="text-[15px] font-semibold leading-snug tracking-tight text-neutral-900 transition-colors group-hover:text-neutral-700 sm:text-[16px]">
         <span className="line-clamp-2">{post.title}</span>
       </h3>
+
+      {/* Two-line description — gives the card context beyond the
+          title without crowding the layout. */}
+      <p className="-mt-1.5 line-clamp-2 text-[12px] leading-relaxed text-neutral-500 sm:text-[12.5px]">
+        {post.excerpt}
+      </p>
     </Link>
   );
 }

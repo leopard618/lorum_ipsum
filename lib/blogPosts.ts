@@ -61,13 +61,39 @@ export type BlogPost = {
 };
 
 /**
- * Unsplash query string applied to every cover photo. Picks a sensible
- * width, JPEG-XL/AVIF auto-format, 80% quality, and `fit=crop` so the
- * crop is consistent across landscape (hero) and portrait (grid card)
- * usages — Next/Image handles the actual size variants from there.
+ * The journal now ships with curated local cover photos in `/public`
+ * instead of pulling from Unsplash.  We keep the historical `IMG(id)`
+ * call sites in the post entries below untouched and instead redirect
+ * each legacy Unsplash photo ID to one of the local files, so all
+ * three surfaces — home Blog slide, /blog index (featured + grid),
+ * and /blog/[slug] detail hero — pick up the change automatically.
+ *
+ * Unknown IDs (e.g. when a new post is added later) fall back to the
+ * seventh local image so nothing 404s.
  */
-const IMG = (id: string): string =>
-  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1600&q=80`;
+const LOCAL_IMAGES: ReadonlyArray<string> = [
+  "/photo_2026-04-29_03-24-20.jpg",
+  "/photo_2026-04-29_03-27-56.jpg",
+  "/photo_2026-04-29_03-27-59.jpg",
+  "/photo_2026-04-29_03-28-02.jpg",
+  "/photo_2026-04-29_03-28-05.jpg",
+  "/photo_2026-04-29_03-28-09.jpg",
+  "/photo_2026-04-29_03-28-31.jpg",
+];
+
+const LEGACY_TO_LOCAL: Record<string, number> = {
+  "1505740420928-5e560c06d30e": 0,
+  "1620712943543-bcc4688e7485": 1,
+  "1555066931-4365d14bab8c": 2,
+  "1518770660439-4636190af475": 3,
+  "1517336714731-489689fd1ca8": 4,
+  "1581090700227-1e37b190418e": 5,
+};
+
+const IMG = (id: string): string => {
+  const idx = LEGACY_TO_LOCAL[id] ?? 6;
+  return LOCAL_IMAGES[idx];
+};
 
 export const posts: BlogPost[] = [
   {

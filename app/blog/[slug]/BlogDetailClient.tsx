@@ -2,39 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
-import FullPageScroller, {
-  type Slide,
-  useFpsControls,
-} from "@/components/FullPageScroller";
 import MenuOverlay from "@/components/MenuOverlay";
 import type { BlogPost, BodyBlock } from "@/lib/blogPosts";
 
 /**
- * Per-post detail viewer rendered as three full-screen slides inside
- * `FullPageScroller`. No card, no border, no sidebar — every slide
- * is full-bleed and the article's cover photo is rendered ONCE as a
- * shared `backdrop` layer behind the slides so slides 1 + 2 reveal
- * the *same* image element (no visual jump between them):
+ * Per-post detail viewer split *vertically* (left/right columns) on
+ * desktop, stacked on mobile. Layout:
  *
- *   ┌─ Slide 1 ─────────────┐    ┌─ Slide 2 ─────────────┐    ┌─ Slide 3 ─────────────┐
- *   │ pills                 │    │ pills (white on photo)│    │ pills (dark on white) │
- *   │                       │    │                       │    │                       │
- *   │ Big title    excerpt  │    │ Big title (overlay)   │    │ Big title    excerpt  │
- *   │              column   │    │                       │    │              cols     │
- *   │                       │    │                       │    │                       │
- *   │   ── 1/4 strip ──     │    │  ▒▒▒ shared photo ▒▒▒ │    │   article body        │
- *   │  (shared photo peeks  │    │  full-bleed reveal    │    │   (scrollable, black  │
- *   │   through transparent │    │  with text overlay    │    │   text on white)      │
- *   │   bottom 25%)         │    │  no scrim/overlay     │    │                       │
- *   └───────────────────────┘    └───────────────────────┘    └───────────────────────┘
+ *   ┌──────────────────────┬──────────────────────┐
+ *   │ ▒▒▒ photo (full)     │  pills               │
+ *   │ ▒▒▒                  │  title + excerpt     │
+ *   │ ▒▒▒  pills           │  ───────             │
+ *   │ ▒▒▒  title           │  long-form body      │
+ *   │ ▒▒▒  mini desc       │  (scrolls inside     │
+ *   │ ▒▒▒                  │   the right column)  │
+ *   └──────────────────────┴──────────────────────┘
  *
- * Because the photo lives in the scroller's `backdrop` slot — outside
- * the translating slide column — it stays *fixed* to the viewport
- * during transitions. Slide 1's white "title cap" simply slides up &
- * out, smoothly revealing more of the image until slide 2 arrives
- * fully transparent and you're left with the photo edge-to-edge.
- * Slide 3 paints its own white canvas on top of the photo.
+ * Both halves fill the viewport on desktop (`lg:h-screen`); the right
+ * column has `overflow-y-auto` so a long article scrolls *inside*
+ * the column without ever pushing the cover photo off-screen.
+ *
+ * On phones / tablets we drop back to a single vertical flow: photo
+ * hero on top, then the long-form body below — two columns side-by-
+ * side would crush both into unreadable strips.
  */
 
 export default function BlogDetailClient({
@@ -44,232 +36,147 @@ export default function BlogDetailClient({
   post: BlogPost;
   adjacent: { prev: BlogPost; next: BlogPost } | null;
 }) {
-  const slides: Slide[] = [
-    {
-      type: "vertical",
-      content: <TitleSlide post={post} />,
-      label: "Title",
-    },
-    {
-      type: "vertical",
-      content: <PictureSlide post={post} />,
-      label: "Cover & summary",
-    },
-    {
-      type: "vertical",
-      content: <BodySlide post={post} adjacent={adjacent} />,
-      label: "Article",
-    },
-  ];
+  const rootRef = useRef<HTMLElement | null>(null);
+
+  // `data-reveal` elements default to `opacity: 0` and only become
+  // visible when something flips them to `is-revealed` (or when an
+  // ancestor `FullPageScroller` slide goes active).  Now that this
+  // page is a plain layout — not part of the FPS — we have to mark
+  // everything as revealed ourselves on mount, otherwise the title,
+  // pills, mini description, and body all stay invisible.  The
+  // contact page does the same thing.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    root
+      .querySelectorAll<HTMLElement>("[data-reveal]")
+      .forEach((el) => el.classList.add("is-revealed"));
+  }, [post.slug]);
 
   return (
-    <FullPageScroller
-      theme="light"
-      slides={slides}
-      backdrop={<BackdropPhoto post={post} />}
+    <main
+      ref={rootRef}
+      className="relative min-h-screen bg-white text-neutral-900 lg:flex lg:h-screen lg:min-h-0 lg:overflow-hidden"
     >
+      {/* Menu trigger overlay — same dark-on-light variant we use on
+          the contact and services pages. */}
       <MenuOverlay theme="light" />
-    </FullPageScroller>
+
+      <HeroHalf post={post} />
+      <BodyHalf post={post} adjacent={adjacent} />
+    </main>
   );
 }
 
 /* =============================================================================
- *   Shared backdrop — ONE Image element behind the entire scroller.
+ *   LEFT COLUMN — full-bleed cover photo + pills + title + mini description
  *
- *   Sized to fill the viewport (100vw × 100vh) with `object-cover`
- *   anchored to the TOP of the photo. Slide 1's TOP strip leaves an
- *   uncovered area where this exact element peeks through as a teaser
- *   crop; slide 2 is fully transparent so the SAME element expands to
- *   fill the viewport.
+ *   Mobile / tablet: takes the full viewport width and `min-h-[55vh]`
+ *   so the photo doesn't collapse into a thin band on portrait screens.
  *
- *   To make slide 1 → slide 2 feel like a real cinematic "zoom-up"
- *   reveal (rather than a hard cut), we read the active slide index
- *   from `useFpsControls()` and animate the backdrop's `transform`
- *   between two states:
+ *   Desktop (lg+): becomes the *left half* of the viewport — fixed at
+ *   `lg:w-1/2`, `lg:h-full` — and never scrolls.  The right column
+ *   handles all internal scrolling for the long-form body.
  *
- *     slide 0 (TITLE)   →  scale(1.18) translateY(-3%)   ← zoomed in
- *     slide 1 (COVER)   →  scale(1.00) translateY(0)     ← full reveal
- *     slide 2 (BODY)    →  scale(1.06) translateY(2%)    ← gentle drift
- *                                                          (covered by
- *                                                          dark anyway)
- *
- *   The transition runs on the same 1000ms / cubic-bezier curve as the
- *   FullPageScroller's column translation so the zoom feels welded to
- *   the scroll motion.
+ *   A dark gradient overlay sits *between* the photo and the text so
+ *   the title + description stay legible regardless of which photo
+ *   the post happens to use.
  * ========================================================================== */
 
-const BACKDROP_TRANSFORM = [
-  // slide 0 — TITLE: image is zoomed in & nudged up so the visible
-  // top strip in slide 1 frames the photo's top edge tightly.
-  "scale(1.18) translateY(-3%)",
-  // slide 1 — COVER: image at its natural framing, full-bleed reveal.
-  "scale(1.00) translateY(0%)",
-  // slide 2 — BODY: subtle counter-drift so if the dark canvas above
-  // it ever shows a sliver mid-transition, the photo isn't frozen.
-  "scale(1.06) translateY(2%)",
-] as const;
-
-function BackdropPhoto({ post }: { post: BlogPost }) {
-  const { currentSlide } = useFpsControls();
-  const transform =
-    BACKDROP_TRANSFORM[currentSlide] ?? BACKDROP_TRANSFORM[1];
+function HeroHalf({ post }: { post: BlogPost }) {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-neutral-950">
-      <div
-        className="absolute inset-0 origin-center"
-        style={{
-          transform,
-          transition:
-            "transform 1000ms cubic-bezier(0.76, 0, 0.24, 1)",
-          willChange: "transform",
-        }}
-      >
+    <section className="relative w-full overflow-hidden bg-neutral-950 text-white lg:h-full lg:w-1/2 lg:flex-none">
+      {/* Photo */}
+      <div className="absolute inset-0">
         <Image
           src={post.image}
           alt={post.imageAlt}
           fill
           priority
-          sizes="100vw"
+          sizes="(min-width: 1024px) 50vw, 100vw"
           className="object-cover object-top"
         />
-      </div>
-    </div>
-  );
-}
-
-/* =============================================================================
- *   Slide 1 — TITLE  (mirrors reference Card 1)
- *
- *   Top 75% of the slide is opaque white and carries the title +
- *   excerpt block. The bottom 25% is transparent, letting the shared
- *   backdrop photo peek through as a strip — which is the very same
- *   element that fills slide 2, so there is zero visual jump.
- * ========================================================================== */
-
-function TitleSlide({ post }: { post: BlogPost }) {
-  return (
-    <section className="absolute inset-0 flex flex-col">
-      {/* Top ~70% — solid white panel that carries the title and
-          excerpt. */}
-      <div className="relative flex flex-1 flex-col bg-white text-neutral-900">
-        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 pt-8 sm:gap-10 sm:px-10 sm:pt-12 lg:gap-12 lg:px-16 lg:pt-14">
-          {/* Pills row */}
-          <div data-reveal>
-            <BreadcrumbPills post={post} variant="light" />
-          </div>
-
-          {/* Title + narrow excerpt column */}
-          <div className="grid grid-cols-1 items-end gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-12">
-            <h1
-              data-reveal
-              style={{ transitionDelay: "120ms" }}
-              className="text-[clamp(2rem,5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.015em] text-neutral-900 lg:col-span-9"
-            >
-              {post.title}
-            </h1>
-            <div
-              data-reveal
-              style={{ transitionDelay: "240ms" }}
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-1 lg:pb-2"
-            >
-              <p className="text-[12px] leading-[1.7] text-neutral-600">
-                {firstSentence(post.excerpt)}
-              </p>
-              {restAfterFirstSentence(post.excerpt) && (
-                <p className="text-[12px] leading-[1.7] text-neutral-600">
-                  {restAfterFirstSentence(post.excerpt)}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* breathing room */}
-          <div className="flex-1" />
-        </div>
-
-        {/* Tiny seam line softens the white→photo edge so it reads
-            as an intentional design break, not a render gap. */}
+        {/* Legibility scrim — darker at the top + bottom (where pills,
+            title, and description live) and gentler in the middle so
+            the photo still reads as the dominant element. */}
         <div
           aria-hidden
-          className="absolute inset-x-0 -bottom-px h-px bg-neutral-200/70"
+          className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-black/65"
         />
       </div>
 
-      {/* Bottom ~30% — TRANSPARENT so the shared backdrop image shows
-          through as a teaser strip at the BOTTOM of the slide. When
-          the user scrolls to slide 2, the same image element zooms
-          out & the white panel above slides up off-screen, so this
-          strip visually "expands" into the full-bleed cover. */}
-      <div
-        data-reveal
-        className="relative h-[30%] min-h-[160px] w-full sm:h-[32%]"
-      />
-    </section>
-  );
-}
-
-/* =============================================================================
- *   Slide 2 — COVER  (mirrors reference Card 2)
- *
- *   Fully transparent slide — the shared backdrop photo IS the slide.
- *   Pills, title and the two-column description sit on top with dark
- *   scrims for legibility. Because no new <Image> is rendered here,
- *   the element from slide 1 simply expands into view as the white
- *   cap above slides off — perfectly continuous.
- * ========================================================================== */
-
-function PictureSlide({ post }: { post: BlogPost }) {
-  return (
-    /* No scrims, no overlay panel — the shared backdrop photo sits
-       fully revealed.  Pills + title + description rely on white
-       text + a soft drop-shadow for legibility on whichever photo
-       the post happens to use. */
-    <section className="absolute inset-0 text-white">
-      <div className="relative mx-auto flex h-full w-full max-w-7xl flex-col px-6 pt-8 pb-8 sm:px-10 sm:pt-12 sm:pb-10 lg:px-16 lg:pt-14 lg:pb-14">
-        {/* Pills row (white-on-photo variant) */}
+      {/* Content lockup. Pills stay anchored to the top, then a
+          flex-grow spacer pushes the title + mini-description group
+          down into the lower portion of the column so they sit
+          *together* (title with the description directly underneath
+          it) rather than the title floating up top while the
+          description hugs the bottom edge. */}
+      <div className="relative z-[1] flex h-full w-full flex-col px-6 pb-12 pt-10 sm:px-10 sm:pb-14 sm:pt-14 lg:px-12 lg:pb-16 lg:pt-14 min-h-[55vh] sm:min-h-[58vh] lg:min-h-0">
+        {/* Pills row */}
         <div data-reveal>
           <BreadcrumbPills post={post} variant="dark" />
         </div>
 
-        {/* Big white title — top-left */}
-        <h2
-          data-reveal
-          style={{ transitionDelay: "160ms" }}
-          className="mt-8 max-w-3xl text-[clamp(1.75rem,4.2vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.015em] text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)] sm:mt-10"
-        >
-          {post.title}
-        </h2>
+        {/* Spacers — flex-[2] above + flex-1 below puts the title +
+            description group roughly two-thirds of the way down the
+            column.  That lifts it off the bottom edge (where the
+            menu trigger was overlapping it) without shoving it back
+            up to the top. */}
+        <div className="flex-[2]" />
 
-        {/* Two-column description — bottom-left */}
-        <div
-          data-reveal
-          style={{ transitionDelay: "320ms" }}
-          className="mt-auto grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6"
-        >
-          <p className="text-[12px] leading-[1.7] text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] sm:text-[12.5px]">
-            {firstSentence(post.excerpt)}
-          </p>
-          {restAfterFirstSentence(post.excerpt) && (
+        {/* Title + mini description, grouped together so the
+            description reads directly under the title (not stranded
+            at the bottom of the column). */}
+        <div className="space-y-5 sm:space-y-6 lg:space-y-5">
+          <h1
+            data-reveal
+            style={{ transitionDelay: "160ms" }}
+            className="max-w-3xl text-[clamp(1.85rem,3.6vw,3rem)] font-semibold leading-[1.05] tracking-[-0.015em] text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)]"
+          >
+            {post.title}
+          </h1>
+
+          <div
+            data-reveal
+            style={{ transitionDelay: "320ms" }}
+            className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-1 lg:gap-2.5 xl:grid-cols-2 xl:gap-5"
+          >
             <p className="text-[12px] leading-[1.7] text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] sm:text-[12.5px]">
-              {restAfterFirstSentence(post.excerpt)}
+              {firstSentence(post.excerpt)}
             </p>
-          )}
+            {restAfterFirstSentence(post.excerpt) && (
+              <p className="text-[12px] leading-[1.7] text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] sm:text-[12.5px]">
+                {restAfterFirstSentence(post.excerpt)}
+              </p>
+            )}
+          </div>
         </div>
+
+        {/* Bottom spacer — paired with the upper one to give the
+            title group its ~67%-from-top resting position. */}
+        <div className="flex-1" />
       </div>
     </section>
   );
 }
 
 /* =============================================================================
- *   Slide 3 — BODY  (mirrors reference Card 3)
+ *   RIGHT COLUMN — full long-form description on a white canvas
  *
- *   White canvas covers the shared backdrop. Title + excerpt lockup
- *   at the top, then the long-form article body flows as a readable
- *   column with dark text on a clean white surface. Author signoff +
- *   prev/next pager close it off.
+ *   Mobile / tablet: stacks under the hero, flows naturally.
+ *   Desktop (lg+): pinned to the right half of the viewport, takes
+ *   `lg:w-1/2`, `lg:h-full`, and scrolls *internally* with
+ *   `lg:overflow-y-auto` — that way long articles never push the
+ *   cover photo off-screen, the photo stays "framed" on the left.
+ *
+ *   On desktop the title/excerpt lockup is dropped (it would simply
+ *   duplicate the title that's already overlaid on the photo to its
+ *   left) and the body kicks off from the top of the column.  On
+ *   mobile we keep the lockup so the body still reads as a section
+ *   below the hero.
  * ========================================================================== */
 
-function BodySlide({
+function BodyHalf({
   post,
   adjacent,
 }: {
@@ -277,51 +184,56 @@ function BodySlide({
   adjacent: { prev: BlogPost; next: BlogPost } | null;
 }) {
   return (
-    /* Natural-flow block (NOT absolute inset-0): the parent
-       `fps-slide` section already has `overflow-y-auto` so anything
-       taller than the viewport scrolls inside it, and the
-       FullPageScroller knows the user is at the top/bottom edge so
-       wheel/swipe at the edge advances to the previous/next slide
-       without ever stealing the user's scroll mid-article.
-
-       `min-h-[100dvh]` (matched to FullPageScroller's `slideHeight`
-       fallback) guarantees the white surface paints at least one full
-       viewport tall — without it the shared backdrop photo bleeds
-       through at the end of the article on viewports where the
-       parent's percentage-height resolves a few pixels short. */
-    <div className="relative min-h-[100dvh] bg-white text-neutral-900">
-      {/* Top header lockup */}
-      <div className="relative z-[1] mx-auto flex w-full max-w-7xl flex-col gap-7 px-6 pt-8 sm:gap-9 sm:px-10 sm:pt-12 lg:px-16 lg:pt-14">
+    <section className="relative bg-white text-neutral-900 lg:h-full lg:w-1/2 lg:flex-none lg:overflow-y-auto">
+      {/* Top header lockup — duplicates info from the photo overlay
+          on the left, so we hide it on lg+ where they sit side-by-
+          side and it would just feel redundant. */}
+      <div className="relative z-[1] mx-auto flex w-full max-w-7xl flex-col gap-7 px-6 pt-10 sm:gap-9 sm:px-10 sm:pt-14 lg:hidden">
         <div data-reveal>
           <BreadcrumbPills post={post} variant="light" />
         </div>
 
-        <div className="grid grid-cols-1 items-end gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-12">
+        <div className="grid grid-cols-1 items-end gap-8 sm:gap-10">
           <h2
             data-reveal
             style={{ transitionDelay: "120ms" }}
-            className="text-[clamp(1.75rem,4.2vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.015em] text-neutral-900 lg:col-span-7"
+            className="text-[clamp(1.75rem,4.2vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.015em] text-neutral-900"
           >
             {post.title}
           </h2>
           <p
             data-reveal
             style={{ transitionDelay: "240ms" }}
-            className="text-[12.5px] leading-[1.75] text-neutral-600 lg:col-span-5 lg:pb-1.5"
+            className="text-[12.5px] leading-[1.75] text-neutral-600"
           >
             {post.excerpt}
           </p>
         </div>
       </div>
 
-      {/* Long-form article body — naturally tall, scrolled by the
-          parent fps-slide section. */}
-      <div className="relative z-[1] mt-9 mx-auto w-full max-w-7xl px-6 pb-12 sm:px-10 sm:pb-14 lg:px-16 lg:pb-16">
+      {/* Long-form article body. Padding is intentionally tighter on
+          desktop (where the column is only ~50vw wide) than on
+          mobile, so the column doesn't feel cramped at narrow
+          breakpoints but also doesn't waste a ton of horizontal
+          space at lg+. */}
+      <div className="relative z-[1] mt-9 w-full px-6 pb-14 sm:px-10 sm:pb-16 lg:mt-0 lg:px-12 lg:pb-16 lg:pt-14">
         <article
           data-reveal
           style={{ transitionDelay: "360ms" }}
-          className="ml-auto max-w-[640px] space-y-5"
+          className="mx-auto max-w-[640px] space-y-5 lg:mx-0 lg:max-w-none"
         >
+          {/* Desktop-only title overhead — gives the body column its
+              own anchor without forcing the user to glance back at
+              the photo for context. */}
+          <div className="hidden lg:mb-2 lg:block">
+            <BreadcrumbPills post={post} variant="light" />
+            <h2
+              className="mt-5 text-[clamp(1.6rem,2.4vw,2.25rem)] font-semibold leading-[1.05] tracking-[-0.015em] text-neutral-900"
+            >
+              {post.title}
+            </h2>
+          </div>
+
           {post.body.map((block, i) => (
             <BodyRenderer key={i} block={block} />
           ))}
@@ -370,7 +282,7 @@ function BodySlide({
           </div>
         </article>
       </div>
-    </div>
+    </section>
   );
 }
 
