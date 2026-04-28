@@ -5,52 +5,25 @@ import { useFpsControls } from "./FullPageScroller";
 
 export default function Footer() {
   return (
-    // Mobile: natural-height (footer hugs its content so phones see
-    // the compact stack — newsletter, nav, social bar — without an
-    // oversized empty band).
-    // Desktop: `lg:min-h-[78vh]` so the dock pop-up rises higher up
-    // the viewport (covers ~3/4 of the screen instead of just the
-    // bottom third), with the previous Blog slide peeking above. The
-    // watermark wrapper carries `lg:flex-1` so the extra height gets
-    // absorbed there as breathing room around "LORUM IPSUM" rather
-    // than as a dead gap above the bottom bar.
-    <footer className="relative flex flex-col overflow-hidden bg-neutral-950 text-white lg:min-h-[78vh]">
-      {/* top accent line */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-500/60 to-transparent"
-      />
-
-      {/* ambient glows */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-cyan-500/10 blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-40 right-0 h-[32rem] w-[32rem] rounded-full bg-red-500/15 blur-[140px]"
-      />
-
-      {/* dot grid */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-
+    // Pure black surface (no gradient/glow/dot-grid decoration any
+    // more) so the footer reads as a calm, flat dark band underneath
+    // the rest of the site.  `lg:min-h-[55vh]` keeps the dock pop-up
+    // tall enough to feel like a deliberate footer slide instead of a
+    // thin strip — but smaller than the old 78vh now that the
+    // LORUM IPSUM watermark is gone and the natural content is
+    // shorter.
+    <footer className="relative flex flex-col overflow-hidden bg-black text-white lg:min-h-[55vh]">
       {/* TOP — Subscribe panel + navigation columns. Paddings tuned
           tight (pt-10/pt-12/pt-14) so the whole footer sits inside a
-          single dock pop-up without pushing the social bar off-screen
+          single dock pop-up without pushing the bottom bar off-screen
           on a 1080p laptop. */}
       <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-10 sm:px-12 sm:pt-12 lg:px-16 lg:pt-14">
         <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-12">
-          {/* Newsletter — given more weight (5/12) and now leads with an
-              eyebrow + a one-liner so it reads as a real call-to-action
-              rather than a stranded heading + input. */}
+          {/* LEFT — newsletter intro + social icons.
+              The social row used to live in the bottom bar but moved
+              up here per design feedback so it sits inside the
+              "Stay connected" pitch column rather than floating in
+              isolation underneath the watermark. */}
           <div className="lg:col-span-5">
             <p
               data-reveal
@@ -85,11 +58,45 @@ export default function Footer() {
               }
             </p>
 
+            {/* SOCIAL ROW — sits where the email input used to live.
+                "Follow us" eyebrow + a horizontal bar of round icon
+                buttons. */}
+            <div
+              data-reveal
+              style={{ transitionDelay: "240ms" }}
+              className="mt-7 flex items-center gap-3"
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/40">
+                Follow us
+              </span>
+              <span aria-hidden className="h-px w-6 bg-white/15" />
+              <div className="flex items-center gap-2.5">
+                <SocialLink href="#" label="X">
+                  <XIcon className="h-4 w-4" />
+                </SocialLink>
+                <SocialLink href="#" label="Instagram">
+                  <InstagramIcon className="h-[18px] w-[18px]" />
+                </SocialLink>
+                <SocialLink href="#" label="YouTube">
+                  <YouTubeIcon className="h-[18px] w-[18px]" />
+                </SocialLink>
+                <SocialLink href="#" label="LinkedIn">
+                  <LinkedInIcon className="h-[18px] w-[18px]" />
+                </SocialLink>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT — email input on top, then the three nav columns
+              underneath with a tall gap between them so the input
+              clearly anchors the column visually rather than feeling
+              welded to the link list below. */}
+          <div className="lg:col-span-7">
             <form
               onSubmit={(e) => e.preventDefault()}
               data-reveal
-              style={{ transitionDelay: "240ms" }}
-              className="group relative mt-7 flex w-full max-w-md items-center gap-3 border-b border-white/20 py-3 transition focus-within:border-white"
+              style={{ transitionDelay: "120ms" }}
+              className="group relative flex w-full items-center gap-3 border-b border-white/20 py-3 transition focus-within:border-white"
             >
               <input
                 type="email"
@@ -105,109 +112,48 @@ export default function Footer() {
                 <ArrowRight className="h-5 w-5" />
               </button>
             </form>
-          </div>
 
-          {/* Navigation columns. Single 3-column subgrid (Quick Links,
-              Policies, Contact) keeps the right side of the top zone
-              tidy and balanced — previously the contact lived as its
-              own col-span, fighting the 2-col link grid for alignment. */}
-          <div
-            data-reveal
-            style={{ transitionDelay: "320ms" }}
-            className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 sm:gap-x-10 lg:col-span-7"
-          >
-            <FooterColumn
-              title="Quick Links"
-              links={[
-                { label: "Home", href: "/" },
-                { label: "Services", href: "/#step-1" },
-                { label: "Blogs", href: "/blog" },
-                { label: "Contact Us", href: "/contact" },
-              ]}
-            />
-            <FooterColumn
-              title="Policies"
-              links={[
-                { label: "Privacy Policy", href: "#" },
-                { label: "Terms and Conditions", href: "#" },
-              ]}
-            />
-            <ContactColumn />
+            <div
+              data-reveal
+              style={{ transitionDelay: "320ms" }}
+              className="mt-12 grid grid-cols-2 gap-x-8 gap-y-10 sm:mt-14 sm:grid-cols-3 sm:gap-x-10"
+            >
+              <FooterColumn
+                title="Quick Links"
+                links={[
+                  { label: "Home", href: "/" },
+                  { label: "Services", href: "/#step-1" },
+                  { label: "Blogs", href: "/blog" },
+                  { label: "Contact Us", href: "/contact" },
+                ]}
+              />
+              <FooterColumn
+                title="Policies"
+                links={[
+                  { label: "Privacy Policy", href: "#" },
+                  { label: "Terms and Conditions", href: "#" },
+                ]}
+              />
+              <ContactColumn />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* WATERMARK — desktop-only now. The whole block (including the
-          divider line above it) is `hidden sm:block`, so phones get a
-          clean stack of newsletter -> nav columns -> bottom bar with
-          no oversized brand text wedged in between. On desktop it
-          stays as the centerpiece. Sizes are deliberately conservative
-          (`text-[6vw]` -> `text-[5vw]`) and `whitespace-nowrap` keeps
-          the two-word mark on a single line. */}
-      <div
-        data-reveal
-        style={{ transitionDelay: "120ms" }}
-        className="relative z-[1] mx-auto hidden w-full max-w-7xl items-center border-t border-white/10 px-6 py-5 sm:mt-9 sm:block sm:px-12 sm:py-6 lg:flex lg:flex-1 lg:px-16 lg:py-10"
-      >
-        <div className="group relative w-full">
-          <div
-            className="select-none whitespace-nowrap text-center text-[6vw] font-extrabold leading-[0.95] tracking-tight text-transparent lg:text-[5vw]"
-            style={{ WebkitTextStroke: "1px rgba(255,255,255,0.18)" }}
-          >
-            LORUM IPSUM
-          </div>
-          <div
-            aria-hidden
-            className="animate-glow-pan pointer-events-none absolute inset-0 select-none whitespace-nowrap bg-gradient-to-r from-red-500 via-fuchsia-400 to-cyan-400 bg-clip-text text-center text-[6vw] font-extrabold leading-[0.95] tracking-tight text-transparent opacity-0 transition duration-700 group-hover:opacity-100 lg:text-[5vw]"
-          >
-            LORUM IPSUM
-          </div>
-        </div>
-      </div>
-
-      {/* BOTTOM BAR — three slots: socials (left), copyright (centre)
-          and a Back-to-top control (right). Social row now leads with
-          a "Follow us" eyebrow so the icons read as a deliberate
-          group rather than four lonely dots, and the icons themselves
-          are slightly larger than the previous version (10x10 buttons,
-          bigger glyphs) to make them obvious in answer to "where is
-          social media?". The back-to-top is wired through
-          `FpsControls.goto(0)` so it animates the user back to the
-          Intro slide using the same scroll engine as the rest of the
-          page, instead of a plain `#top` anchor (which would do
-          nothing inside the FullPageScroller). */}
+      {/* BOTTOM BAR — copyright on the left, lone up-arrow back-to-top
+          on the right.  No "Back to top" text any more (per feedback)
+          — just the icon button.  The social row that used to live
+          here moved up next to the "Stay connected" pitch. */}
       <div
         data-reveal
         style={{ transitionDelay: "260ms" }}
-        className="relative z-[1] mx-auto w-full max-w-7xl px-6 pb-6 sm:px-12 sm:pb-7 lg:px-16"
+        className="relative z-[1] mx-auto mt-10 w-full max-w-7xl px-6 pb-6 sm:mt-12 sm:px-12 sm:pb-7 lg:mt-14 lg:px-16"
       >
-        <div className="flex flex-col items-center gap-4 border-t border-white/10 pt-5 sm:flex-row sm:justify-between sm:gap-6 sm:pt-6">
-          <div className="flex items-center gap-3">
-            <span className="hidden text-[10px] font-semibold uppercase tracking-[0.28em] text-white/40 sm:inline">
-              Follow us
-            </span>
-            <span aria-hidden className="hidden h-px w-6 bg-white/15 sm:inline-block" />
-            <div className="flex items-center gap-2.5">
-              <SocialLink href="#" label="X">
-                <XIcon className="h-4 w-4" />
-              </SocialLink>
-              <SocialLink href="#" label="Instagram">
-                <InstagramIcon className="h-[18px] w-[18px]" />
-              </SocialLink>
-              <SocialLink href="#" label="YouTube">
-                <YouTubeIcon className="h-[18px] w-[18px]" />
-              </SocialLink>
-              <SocialLink href="#" label="LinkedIn">
-                <LinkedInIcon className="h-[18px] w-[18px]" />
-              </SocialLink>
-            </div>
-          </div>
-
-          <p className="order-3 text-xs text-white/50 sm:order-none">
+        <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-5 sm:pt-6">
+          <p className="text-xs text-white/50">
             © <span className="text-white/70">2026</span> Lorum Ipsum. All
             rights reserved.
           </p>
-
           <BackToTopButton />
         </div>
       </div>
@@ -220,6 +166,9 @@ export default function Footer() {
  * Pulled out into its own component because it has to live inside the
  * FpsControls provider tree — Footer itself is rendered inside the
  * scroller, so the hook is safe to call here.
+ *
+ * Now an icon-only round button (no "Back to top" label) — matches
+ * the bare `↑` affordance used elsewhere in the design.
  */
 function BackToTopButton() {
   const { goto } = useFpsControls();
@@ -227,19 +176,18 @@ function BackToTopButton() {
     <button
       type="button"
       onClick={() => goto(0)}
-      className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70 transition hover:-translate-y-0.5 hover:border-white/40 hover:bg-white hover:text-black"
+      aria-label="Back to top"
+      className="group grid h-10 w-10 flex-none place-items-center rounded-full border border-white/15 bg-white/[0.03] text-white/70 transition hover:-translate-y-0.5 hover:border-white/40 hover:bg-white hover:text-black"
     >
-      <span>Back to top</span>
-      <ArrowUp className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" />
+      <ArrowUp className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
     </button>
   );
 }
 
 /**
- * Renamed from inline JSX so the navigation row reads as three peer
- * columns. The PHONE/MAIL/PIN icons get the same heading treatment as
- * the link columns, which is what makes the right-hand grid feel
- * balanced in the redesigned top zone.
+ * PHONE/MAIL/PIN icons get the same heading treatment as the link
+ * columns, which is what makes the right-hand grid feel balanced in
+ * the redesigned top zone.
  */
 function ContactColumn() {
   return (
