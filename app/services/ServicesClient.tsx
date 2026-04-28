@@ -64,23 +64,29 @@ function IndexSection() {
       */}
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pb-8 pt-6 sm:px-10 sm:pb-10 sm:pt-8 lg:px-16 lg:pb-12 lg:pt-10">
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-16">
-          {/* LEFT — "Services" wordmark.  `justify-center` puts it in
-              the vertical middle of the left column so it sits at the
-              page's optical centre on landing.  Each letter is wrapped
-              in a `.title-letter` span so the global keyframe staggers
-              them in on first paint / when the slide becomes active. */}
-          <div className="flex min-h-0 min-w-0 flex-col items-start justify-center overflow-hidden lg:col-span-5">
+          {/* LEFT — "Services" wordmark.  Pinned to the top of the
+              column so its baseline sits next to the right column's
+              description paragraph rather than floating in the
+              vertical middle.  Each character is wrapped in a
+              `.title-mask` (overflow-clipping wrapper) + a
+              `.title-letter` (the actual moving glyph): the mask
+              hides the letter while it sits below the baseline, the
+              letter springs up through it on slide entrance with a
+              brief tilt + overshoot.  The inline `animation-delay`
+              staggers the letters left-to-right. */}
+          <div className="flex min-h-0 min-w-0 flex-col items-start justify-start lg:col-span-5">
             <h1
               aria-label="Services"
               className="text-[clamp(2.5rem,6.5vw,5.25rem)] font-bold leading-[0.95] tracking-[-0.04em] text-neutral-900"
             >
               {Array.from("Services").map((char, i) => (
-                <span
-                  key={i}
-                  className="title-letter"
-                  style={{ animationDelay: `${120 + i * 70}ms` }}
-                >
-                  {char}
+                <span key={i} className="title-mask">
+                  <span
+                    className="title-letter"
+                    style={{ animationDelay: `${140 + i * 55}ms` }}
+                  >
+                    {char}
+                  </span>
                 </span>
               ))}
             </h1>
@@ -171,23 +177,27 @@ function IndexSection() {
 }
 
 /* =============================================================================
- *   Top-of-section header (brand + CTA)
+ *   Top-of-section header (brand wordmark only)
  *
  *   Tone-aware so the same component reads correctly on either a
- *   light surface (dark text) or a dark surface (white text).
+ *   light surface (dark text) or a dark surface (white text).  The
+ *   right-hand "Contact us" link was removed per design feedback —
+ *   the global menu (top-right hamburger) already exposes the route.
  * ========================================================================== */
 
 function BrandHeader({ tone }: { tone: "light" | "dark" }) {
   const isDark = tone === "dark";
   const textClass = isDark ? "text-white" : "text-neutral-900";
   const dotClass = isDark ? "bg-white" : "bg-neutral-900";
-  const ctaHover = isDark ? "hover:text-white" : "hover:text-neutral-700";
-  const ctaDecoration = isDark
-    ? "decoration-white/40 hover:decoration-white"
-    : "decoration-neutral-900/40 hover:decoration-neutral-900";
   const wordmarkHover = isDark
     ? "hover:text-white/80"
     : "hover:text-neutral-700";
+  // CTA on the top-right — points to the contact form.  Tone-aware so
+  // it reads on both light and dark surfaces.
+  const ctaHover = isDark ? "hover:text-white/80" : "hover:text-neutral-700";
+  const ctaDecoration = isDark
+    ? "decoration-white/40 hover:decoration-white"
+    : "decoration-neutral-400 hover:decoration-neutral-900";
 
   return (
     <header className="relative z-[3] mx-auto flex w-full max-w-7xl items-center justify-between px-6 pt-6 sm:px-10 sm:pt-8 lg:px-16 lg:pt-10">
@@ -201,9 +211,9 @@ function BrandHeader({ tone }: { tone: "light" | "dark" }) {
 
       <Link
         href="/contact"
-        className={`hidden items-center gap-2 text-[12px] font-semibold tracking-[0.05em] underline underline-offset-[6px] transition-colors sm:inline-flex ${textClass} ${ctaDecoration} ${ctaHover}`}
+        className={`text-[12px] font-semibold uppercase tracking-[0.28em] underline-offset-[6px] decoration-1 underline transition-colors ${textClass} ${ctaHover} ${ctaDecoration}`}
       >
-        Contact us
+        Get a quote
       </Link>
     </header>
   );

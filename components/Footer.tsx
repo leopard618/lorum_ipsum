@@ -19,8 +19,11 @@ export default function Footer() {
     // bar so the browser's home / back / multitasking chrome doesn't
     // occlude the copyright row + back-to-top button.
     <footer className="relative flex flex-col overflow-hidden bg-black text-white lg:min-h-[68vh]">
-      {/* TOP — Subscribe panel + navigation columns. */}
-      <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-7 sm:px-12 sm:pt-12 lg:px-16 lg:pt-14">
+      {/* TOP — Subscribe panel + navigation columns.  Top padding nudged
+          down (`pt-12 / sm:pt-20 / lg:pt-24`) so there's breathing
+          room between the previous slide and the "Stay connected" eyebrow,
+          rather than hugging the slide's bottom edge. */}
+      <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-12 sm:px-12 sm:pt-20 lg:px-16 lg:pt-24">
         <div className="grid grid-cols-1 gap-7 sm:gap-12 lg:grid-cols-12 lg:gap-12">
           {/* LEFT — newsletter pitch + social row.  The email input
               now lives at the top of the right column so it reads as
@@ -144,18 +147,29 @@ export default function Footer() {
   );
 }
 
+/** RFC-5322-friendly shape (local@domain.tld). */
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
  * Newsletter form — own component so we can hold per-instance state
  * for the typing/submitting "lightning" shimmer (the white gradient
- * bar that sweeps the bottom border while the user is interacting).
+ * bar that sweeps the bottom border while the user is interacting)
+ * AND the email validation lifecycle.
  *
- * Triggers:
+ * Validation:
+ *  - Empty field on submit                 → "Please enter your email…"
+ *  - Doesn't match local@domain.tld shape  → "That email doesn't look right."
+ *  - Longer than 254 characters            → "That email is unusually long."
+ *
+ * Shimmer triggers:
  *  - User types in the field        → shimmer runs
- *  - User submits the form          → shimmer runs for ~1.4s
+ *  - User submits a *valid* email   → shimmer runs for ~1.4s + success status
  *  - 600ms idle without typing      → shimmer hides
  */
 function NewsletterForm() {
   const [value, setValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [pulse, setPulse] = useState(false);
   const isTyping = useTypingState(value);
   const pulseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -167,11 +181,39 @@ function NewsletterForm() {
     [],
   );
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+    // Clear stale error / success the moment the user edits the field
+    // — keeps the messaging in sync with what the user actually sees.
+    if (error) setError(null);
+    if (submitted) setSubmitted(false);
+  };
+
+  const validate = (raw: string): string | null => {
+    const trimmed = raw.trim();
+    if (!trimmed) return "Please enter your email address.";
+    if (trimmed.length > 254) return "That email is unusually long.";
+    if (!EMAIL_REGEX.test(trimmed)) return "That email doesn't look right.";
+    return null;
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const validationError = validate(value);
+    if (validationError) {
+      setError(validationError);
+      setSubmitted(false);
+      return;
+    }
+    // No backend wired yet — flash the shimmer + success status so the
+    // submit feels real.  Replace this with your fetch / server action
+    // call (and an `await` + status reset) when the API is in place.
+    setError(null);
+    setSubmitted(true);
     setPulse(true);
     if (pulseTimer.current) clearTimeout(pulseTimer.current);
     pulseTimer.current = setTimeout(() => setPulse(false), 1400);
+    setValue("");
   };
 
   const shimmerActive = isTyping || pulse;
@@ -179,6 +221,7 @@ function NewsletterForm() {
   return (
     <form
       onSubmit={handleSubmit}
+      noValidate
       data-reveal
       style={{ transitionDelay: "240ms" }}
       className="group relative w-full"
@@ -186,10 +229,19 @@ function NewsletterForm() {
       <div className="relative flex items-center gap-3 py-3">
         <input
           type="email"
-          required
+          inputMode="email"
+          autoComplete="email"
           placeholder="you@company.com"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={handleChange}
+          aria-invalid={!!error}
+          aria-describedby={
+            error
+              ? "newsletter-error"
+              : submitted
+                ? "newsletter-success"
+                : undefined
+          }
           className="w-full bg-transparent text-sm text-white placeholder-white/40 outline-none"
         />
         <button
@@ -202,10 +254,16 @@ function NewsletterForm() {
       </div>
 
       {/* Static bottom rule — visible at all times so the field reads
-          as an input even before the user interacts. */}
+          as an input even before the user interacts.  Goes red when
+          there's a validation error so the field itself signals the
+          problem in addition to the message below. */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/20 transition-colors group-focus-within:bg-white"
+        className={`pointer-events-none absolute inset-x-0 bottom-0 h-px transition-colors ${
+          error
+            ? "bg-red-400"
+            : "bg-white/20 group-focus-within:bg-white"
+        }`}
       />
 
       {/* Lightning bar — sits exactly on top of the static rule and
@@ -226,6 +284,28 @@ function NewsletterForm() {
           }}
         />
       </span>
+
+      {/* Validation message — error wins over success when both are
+          eligible.  Both share the same line height so the field
+          row doesn't visibly jump as the message appears/disappears. */}
+      {error && (
+        <p
+          id="newsletter-error"
+          role="alert"
+          className="mt-2 text-[12px] font-medium text-red-300"
+        >
+          {error}
+        </p>
+      )}
+      {!error && submitted && (
+        <p
+          id="newsletter-success"
+          role="status"
+          className="mt-2 text-[12px] font-medium text-white/70"
+        >
+          Thanks — you&apos;ll hear from us soon.
+        </p>
+      )}
     </form>
   );
 }

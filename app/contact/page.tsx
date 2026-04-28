@@ -100,12 +100,48 @@ export default function ContactPage() {
 
   const validate = (): boolean => {
     const next: Partial<Record<keyof FormState, string>> = {};
-    if (!form.fullName.trim()) next.fullName = "Please enter your full name.";
-    if (!form.email.trim()) next.email = "Please enter your email address.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+
+    // Full name — at least two characters of *non-whitespace*, so a
+    // single-letter or all-spaces submission is rejected.
+    const trimmedName = form.fullName.trim();
+    if (!trimmedName) next.fullName = "Please enter your full name.";
+    else if (trimmedName.length < 2)
+      next.fullName = "That name looks too short.";
+
+    // Email — required + RFC-5322-friendly shape (local@domain.tld) +
+    // an upper bound so a 1KB blob doesn't slip past the regex.
+    const trimmedEmail = form.email.trim();
+    if (!trimmedEmail) next.email = "Please enter your email address.";
+    else if (trimmedEmail.length > 254)
+      next.email = "That email is unusually long.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail))
       next.email = "That email doesn't look right.";
-    if (!form.phone.trim()) next.phone = "Please enter your phone number.";
-    if (!form.message.trim()) next.message = "Please share a short message.";
+
+    // Phone — strip everything except digits and validate length +
+    // permitted-character set.  We accept the common punctuation
+    // people sprinkle into international numbers (+, spaces, dashes,
+    // parens, dots) but require at least 7 actual digits (the
+    // shortest national subscriber-number length) and no more than
+    // 15 (E.164 maximum).
+    const trimmedPhone = form.phone.trim();
+    const phoneDigits = trimmedPhone.replace(/\D/g, "");
+    if (!trimmedPhone) {
+      next.phone = "Please enter your phone number.";
+    } else if (!/^[+]?[\d\s().\-]+$/.test(trimmedPhone)) {
+      next.phone = "Please enter a valid phone number.";
+    } else if (phoneDigits.length < 7) {
+      next.phone = "That phone number looks too short.";
+    } else if (phoneDigits.length > 15) {
+      next.phone = "That phone number looks too long.";
+    }
+
+    // Message — require at least a handful of words so we don't ship
+    // empty / one-character submissions to the inbox.
+    const trimmedMessage = form.message.trim();
+    if (!trimmedMessage) next.message = "Please share a short message.";
+    else if (trimmedMessage.length < 10)
+      next.message = "Please add a bit more detail (10+ characters).";
+
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -268,9 +304,9 @@ export default function ContactPage() {
           <h1
             data-reveal
             style={{ transitionDelay: "80ms" }}
-            className="lg:col-span-8 text-[clamp(3rem,9vw,7.5rem)] font-bold leading-[0.95] tracking-tight text-neutral-900"
+            className="lg:col-span-8 text-[clamp(2.25rem,6.5vw,5.25rem)] font-bold leading-[0.98] tracking-tight text-neutral-900"
           >
-            Contact Us.
+            Let&apos;s Collaborate.
           </h1>
           <p
             data-reveal

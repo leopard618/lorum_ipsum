@@ -474,35 +474,60 @@ body::-webkit-scrollbar {
   }
 }
 
-/* ---------- Services title — letter-by-letter reveal ----------
+/* ---------- Services title — modern "spring through mask" reveal ----------
    Each character of the title (e.g. "Services") is wrapped in a
-   `.title-letter` span.  When the parent slide becomes active (or
-   when the global `is-revealed` flag is set on the parent for non-FPS
-   routes), the letters rise + fade in in sequence with a blur
-   release.  The per-letter `animation-delay` is set inline at the
-   call-site so we can tune the stagger without editing this file. */
+   per-letter mask so it can be clipped while it slides up from
+   below the baseline.  The inner `.title-letter` span carries the
+   actual transform: it starts ~110% below its resting position
+   (entirely outside the mask), tilts in slightly, springs through
+   the resting line with an overshoot, then settles.  Combined with
+   the inline `animation-delay` set at the call-site this gives a
+   staggered, cinema-grade entrance instead of a flat fade-up.  The
+   mask carries a small extra padding-top so the upward overshoot
+   isn't clipped by the mask's top edge. */
 @keyframes title-letter-in {
-  from {
+  0% {
+    transform: translateY(112%) rotate(6deg);
     opacity: 0;
-    transform: translateY(60%);
-    filter: blur(8px);
+    filter: blur(6px);
   }
-  to {
+  55% {
+    transform: translateY(-9%) rotate(-1.5deg);
     opacity: 1;
-    transform: translateY(0);
     filter: blur(0);
   }
+  78% {
+    transform: translateY(3%) rotate(0.6deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.title-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Headroom so the spring overshoot above the resting line isn't
+     sliced off by the mask's top edge.  The negative margin keeps
+     the layout box flush so successive masks don't introduce an
+     extra gap above the title. */
+  padding-top: 0.22em;
+  margin-top: -0.22em;
 }
 
 .title-letter {
   display: inline-block;
   opacity: 0;
+  transform: translateY(112%) rotate(6deg);
   will-change: transform, opacity, filter;
 }
 
 [data-slide-active="true"] .title-letter,
 [data-reveal].is-revealed .title-letter {
-  animation: title-letter-in 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: title-letter-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
