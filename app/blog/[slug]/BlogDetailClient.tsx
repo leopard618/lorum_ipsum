@@ -117,12 +117,11 @@ function HeroHalf({ post }: { post: BlogPost }) {
           <BreadcrumbPills post={post} variant="dark" />
         </div>
 
-        {/* Spacers — flex-[2] above + flex-1 below puts the title +
-            description group roughly two-thirds of the way down the
-            column.  That lifts it off the bottom edge (where the
-            menu trigger was overlapping it) without shoving it back
-            up to the top. */}
-        <div className="flex-[2]" />
+        {/* Spacers — flex-[5] above + flex-1 below sits the title +
+            description group ~83% of the way down the column, near
+            the bottom edge (but still clear of the menu trigger
+            circle) so the photo gets the most visual real estate. */}
+        <div className="flex-[5]" />
 
         {/* Title + mini description, grouped together so the
             description reads directly under the title (not stranded
@@ -153,7 +152,7 @@ function HeroHalf({ post }: { post: BlogPost }) {
         </div>
 
         {/* Bottom spacer — paired with the upper one to give the
-            title group its ~67%-from-top resting position. */}
+            title group its ~83%-from-top resting position. */}
         <div className="flex-1" />
       </div>
     </section>
