@@ -22,9 +22,12 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
  */
 
 /** SHA-256 of the agreed-upon preview password. The cleartext password
- *  itself is never shipped to the browser; only this digest is. */
+ *  itself is never shipped to the browser; only this digest is.
+ *
+ *  Current preview password: `rxcern901`
+ *  (sha256: 2451b684499ac122a7ea4d22561cd4d9b5490402f5e34280563bb2e990ea25b5) */
 const PASSWORD_HASH =
-  "5cce4c5632fd3035013b96ac9ef9739ee6ed998fc5fbeca8749409898a7c7fc4";
+  "2451b684499ac122a7ea4d22561cd4d9b5490402f5e34280563bb2e990ea25b5";
 
 async function sha256Hex(input: string): Promise<string> {
   const data = new TextEncoder().encode(input);

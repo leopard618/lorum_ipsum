@@ -29,7 +29,7 @@ export type MenuItem = {
  */
 export const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { label: "Home", step: 0, hint: "Welcome" },
-  { label: "Services", step: 1, hint: "What we do" },
+  { label: "Services", href: "/services", hint: "What we do" },
   { label: "Industries", step: 4, hint: "Where we work" },
   { label: "Blog", href: "/blog", hint: "Field notes & essays" },
   { label: "Contact", href: "/contact", hint: "Get in touch" },
