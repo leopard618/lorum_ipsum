@@ -1,29 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+
 import { useFpsControls } from "./FullPageScroller";
 
 export default function Footer() {
   return (
     // Pure black surface (no gradient/glow/dot-grid decoration any
     // more) so the footer reads as a calm, flat dark band underneath
-    // the rest of the site.  `lg:min-h-[55vh]` keeps the dock pop-up
-    // tall enough to feel like a deliberate footer slide instead of a
-    // thin strip — but smaller than the old 78vh now that the
-    // LORUM IPSUM watermark is gone and the natural content is
-    // shorter.
-    <footer className="relative flex flex-col overflow-hidden bg-black text-white lg:min-h-[55vh]">
-      {/* TOP — Subscribe panel + navigation columns. Paddings tuned
-          tight (pt-10/pt-12/pt-14) so the whole footer sits inside a
-          single dock pop-up without pushing the bottom bar off-screen
-          on a 1080p laptop. */}
+    // the rest of the site.  `lg:min-h-[68vh]` lifts the dock pop-up
+    // higher than the previous 55vh — feedback was that the footer
+    // was sitting too low on the home page, leaving a tall band of
+    // the previous slide visible above it.
+    <footer className="relative flex flex-col overflow-hidden bg-black text-white lg:min-h-[68vh]">
+      {/* TOP — Subscribe panel + navigation columns. */}
       <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-10 sm:px-12 sm:pt-12 lg:px-16 lg:pt-14">
         <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-12">
-          {/* LEFT — newsletter intro + social icons.
-              The social row used to live in the bottom bar but moved
-              up here per design feedback so it sits inside the
-              "Stay connected" pitch column rather than floating in
-              isolation underneath the watermark. */}
+          {/* LEFT — newsletter pitch + social row.  The email input
+              now lives at the top of the right column so it reads as
+              "next to" the Subscribe headline rather than below it. */}
           <div className="lg:col-span-5">
             <p
               data-reveal
@@ -58,12 +54,10 @@ export default function Footer() {
               }
             </p>
 
-            {/* SOCIAL ROW — sits where the email input used to live.
-                "Follow us" eyebrow + a horizontal bar of round icon
-                buttons. */}
+            {/* SOCIAL ROW */}
             <div
               data-reveal
-              style={{ transitionDelay: "240ms" }}
+              style={{ transitionDelay: "320ms" }}
               className="mt-7 flex items-center gap-3"
             >
               <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/40">
@@ -87,36 +81,17 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* RIGHT — email input on top, then the three nav columns
-              underneath with a tall gap between them so the input
-              clearly anchors the column visually rather than feeling
-              welded to the link list below. */}
-          <div className="lg:col-span-7">
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              data-reveal
-              style={{ transitionDelay: "120ms" }}
-              className="group relative flex w-full items-center gap-3 border-b border-white/20 py-3 transition focus-within:border-white"
-            >
-              <input
-                type="email"
-                required
-                placeholder="you@company.com"
-                className="w-full bg-transparent text-sm text-white placeholder-white/40 outline-none"
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe"
-                className="flex-none text-white/70 transition hover:text-red-400"
-              >
-                <ArrowRight className="h-5 w-5" />
-              </button>
-            </form>
+          {/* RIGHT — email input on top, three nav columns below.
+              The input is given its own row so it occupies the same
+              vertical band as the Subscribe headline on the left,
+              reading horizontally as one "headline + input" unit. */}
+          <div className="flex flex-col gap-10 sm:gap-12 lg:col-span-7">
+            <NewsletterForm />
 
             <div
               data-reveal
               style={{ transitionDelay: "320ms" }}
-              className="mt-12 grid grid-cols-2 gap-x-8 gap-y-10 sm:mt-14 sm:grid-cols-3 sm:gap-x-10"
+              className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 sm:gap-x-10"
             >
               <FooterColumn
                 title="Quick Links"
@@ -141,12 +116,11 @@ export default function Footer() {
       </div>
 
       {/* BOTTOM BAR — copyright on the left, lone up-arrow back-to-top
-          on the right.  No "Back to top" text any more (per feedback)
-          — just the icon button.  The social row that used to live
-          here moved up next to the "Stay connected" pitch. */}
+          on the right.  No "Back to top" text any more — just the
+          icon button. */}
       <div
         data-reveal
-        style={{ transitionDelay: "260ms" }}
+        style={{ transitionDelay: "360ms" }}
         className="relative z-[1] mx-auto mt-10 w-full max-w-7xl px-6 pb-6 sm:mt-12 sm:px-12 sm:pb-7 lg:mt-14 lg:px-16"
       >
         <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-5 sm:pt-6">
@@ -162,13 +136,126 @@ export default function Footer() {
 }
 
 /**
+ * Newsletter form — own component so we can hold per-instance state
+ * for the typing/submitting "lightning" shimmer (the white gradient
+ * bar that sweeps the bottom border while the user is interacting).
+ *
+ * Triggers:
+ *  - User types in the field        → shimmer runs
+ *  - User submits the form          → shimmer runs for ~1.4s
+ *  - 600ms idle without typing      → shimmer hides
+ */
+function NewsletterForm() {
+  const [value, setValue] = useState("");
+  const [pulse, setPulse] = useState(false);
+  const isTyping = useTypingState(value);
+  const pulseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (pulseTimer.current) clearTimeout(pulseTimer.current);
+    },
+    [],
+  );
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPulse(true);
+    if (pulseTimer.current) clearTimeout(pulseTimer.current);
+    pulseTimer.current = setTimeout(() => setPulse(false), 1400);
+  };
+
+  const shimmerActive = isTyping || pulse;
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      data-reveal
+      style={{ transitionDelay: "240ms" }}
+      className="group relative w-full"
+    >
+      <div className="relative flex items-center gap-3 py-3">
+        <input
+          type="email"
+          required
+          placeholder="you@company.com"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="w-full bg-transparent text-sm text-white placeholder-white/40 outline-none"
+        />
+        <button
+          type="submit"
+          aria-label="Subscribe"
+          className="flex-none text-white/70 transition hover:text-red-400"
+        >
+          <ArrowRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Static bottom rule — visible at all times so the field reads
+          as an input even before the user interacts. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/20 transition-colors group-focus-within:bg-white"
+      />
+
+      {/* Lightning bar — sits exactly on top of the static rule and
+          fades in only while the user is typing or just submitted.
+          Width is wider than 1/3 of the line so the white sliver is
+          unmistakable on the dark surface. */}
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden transition-opacity duration-300 ${
+          shimmerActive ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <span
+          className="animate-input-shimmer absolute inset-y-0 left-0 w-1/3"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent)",
+          }}
+        />
+      </span>
+    </form>
+  );
+}
+
+/**
+ * Track whether `value` has changed in the last `debounceMs` window.
+ * Returns `true` while the user is actively typing, `false` once they
+ * stop.  Used to drive the lightning shimmer in `NewsletterForm` and
+ * (separately) in the contact form's `Field`.
+ */
+function useTypingState(value: string, debounceMs = 600) {
+  const [typing, setTyping] = useState(false);
+  const previous = useRef(value);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (value !== previous.current) {
+      previous.current = value;
+      setTyping(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setTyping(false), debounceMs);
+    }
+  }, [value, debounceMs]);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  return typing;
+}
+
+/**
  * Right-side action that takes the user back to the very first slide.
  * Pulled out into its own component because it has to live inside the
  * FpsControls provider tree — Footer itself is rendered inside the
  * scroller, so the hook is safe to call here.
- *
- * Now an icon-only round button (no "Back to top" label) — matches
- * the bare `↑` affordance used elsewhere in the design.
  */
 function BackToTopButton() {
   const { goto } = useFpsControls();
@@ -184,11 +271,6 @@ function BackToTopButton() {
   );
 }
 
-/**
- * PHONE/MAIL/PIN icons get the same heading treatment as the link
- * columns, which is what makes the right-hand grid feel balanced in
- * the redesigned top zone.
- */
 function ContactColumn() {
   return (
     <div>

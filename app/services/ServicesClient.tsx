@@ -57,34 +57,43 @@ function IndexSection() {
 
       {/*
         `min-h-0` lets the body grid shrink to whatever height the
-        parent flex column allocates instead of growing to fit the
+        parent flex container allocates instead of growing to fit the
         accordion's intrinsic content.  The right column is the only
         scroll container; the left column (Services wordmark) stays
-        anchored at the top regardless of how many rows are open.
+        vertically centred regardless of how many rows are open.
       */}
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pb-8 pt-6 sm:px-10 sm:pb-10 sm:pt-8 lg:px-16 lg:pb-12 lg:pt-10">
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-16">
-          {/* LEFT — "Services" wordmark, top-aligned so it sits up next
-              to the description on the right rather than floating in
-              the vertical centre of the column. */}
-          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:col-span-5">
+          {/* LEFT — "Services" wordmark.  `justify-center` puts it in
+              the vertical middle of the left column so it sits at the
+              page's optical centre on landing.  Each letter is wrapped
+              in a `.title-letter` span so the global keyframe staggers
+              them in on first paint / when the slide becomes active. */}
+          <div className="flex min-h-0 min-w-0 flex-col items-start justify-center overflow-hidden lg:col-span-5">
             <h1
-              data-reveal
+              aria-label="Services"
               className="text-[clamp(2.5rem,6.5vw,5.25rem)] font-bold leading-[0.95] tracking-[-0.04em] text-neutral-900"
             >
-              Services
+              {Array.from("Services").map((char, i) => (
+                <span
+                  key={i}
+                  className="title-letter"
+                  style={{ animationDelay: `${120 + i * 70}ms` }}
+                >
+                  {char}
+                </span>
+              ))}
             </h1>
           </div>
 
-          {/* RIGHT — short pitch + accordion list.  The bottom mask
-              (`mask-fade`) is a vertical fade applied as a CSS mask:
-              when the column overflows, the last few rows fade out so
-              there's a visible cue that scrolling reveals more.  When
-              everything fits the mask is benign — full-opacity content
-              just stays full-opacity. */}
+          {/* RIGHT — short pitch + accordion list.  Native scrollbars
+              are hidden because the accordion fits 9 rows + an
+              expanded description in a typical viewport; the
+              `mask-fade` at the bottom still hints at any rare
+              overflow without exposing a chrome gutter. */}
           <div className="relative flex min-h-0 min-w-0 flex-col lg:col-span-7">
             <div
-              className="flex min-h-0 flex-col overflow-y-auto pr-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-track]:bg-transparent"
+              className="flex min-h-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{
                 maskImage:
                   "linear-gradient(to bottom, black 0, black calc(100% - 24px), transparent 100%)",
@@ -172,13 +181,13 @@ function BrandHeader({ tone }: { tone: "light" | "dark" }) {
   const isDark = tone === "dark";
   const textClass = isDark ? "text-white" : "text-neutral-900";
   const dotClass = isDark ? "bg-white" : "bg-neutral-900";
-  const ctaHover = isDark ? "hover:text-white" : "hover:text-violet-600";
+  const ctaHover = isDark ? "hover:text-white" : "hover:text-neutral-700";
   const ctaDecoration = isDark
     ? "decoration-white/40 hover:decoration-white"
-    : "decoration-neutral-900/40 hover:decoration-violet-600";
+    : "decoration-neutral-900/40 hover:decoration-neutral-900";
   const wordmarkHover = isDark
     ? "hover:text-white/80"
-    : "hover:text-violet-600";
+    : "hover:text-neutral-700";
 
   return (
     <header className="relative z-[3] mx-auto flex w-full max-w-7xl items-center justify-between px-6 pt-6 sm:px-10 sm:pt-8 lg:px-16 lg:pt-10">

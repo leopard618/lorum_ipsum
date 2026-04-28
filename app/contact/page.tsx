@@ -7,6 +7,37 @@ import { useEffect, useRef, useState } from "react";
 import MenuOverlay from "@/components/MenuOverlay";
 
 /**
+ * Track whether `value` has changed in the last `debounceMs` window.
+ * Returns `true` while the user is actively typing, `false` once they
+ * stop.  Used to drive the lightning shimmer on the bottom border of
+ * each input — animation runs while typing, quietly fades out once
+ * the user pauses.
+ */
+function useTypingState(value: string, debounceMs = 600) {
+  const [typing, setTyping] = useState(false);
+  const previous = useRef(value);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (value !== previous.current) {
+      previous.current = value;
+      setTyping(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setTyping(false), debounceMs);
+    }
+  }, [value, debounceMs]);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  return typing;
+}
+
+/**
  * hCaptcha test sitekey — always returns a valid token without showing
  * a challenge, so the form is wired-and-working out of the box. Swap
  * with a real sitekey from https://dashboard.hcaptcha.com/sites for
@@ -205,7 +236,7 @@ export default function ContactPage() {
       <header className="relative z-[1] mx-auto flex w-full max-w-7xl items-center justify-between px-6 pt-6 sm:px-10 sm:pt-8 lg:px-16 lg:pt-10">
         <Link
           href="/"
-          className="text-sm font-semibold tracking-[0.28em] text-neutral-900 hover:text-violet-600"
+          className="text-sm font-semibold tracking-[0.28em] text-neutral-900 transition-colors hover:text-neutral-700"
         >
           LORUM IPSUM
         </Link>
@@ -320,18 +351,11 @@ export default function ContactPage() {
               />
               <div className="sm:col-span-2">
                 <FieldLabel required>Message</FieldLabel>
-                <textarea
+                <MessageField
                   value={form.message}
                   onChange={update("message")}
-                  rows={4}
-                  placeholder="Tell us a bit about your project…"
-                  className={`mt-1 w-full resize-none border-b bg-transparent py-3 text-base text-neutral-900 placeholder-neutral-400 outline-none transition ${
-                    errors.message
-                      ? "border-violet-500 focus:border-violet-600"
-                      : "border-neutral-300 focus:border-neutral-900"
-                  }`}
+                  error={errors.message}
                 />
-                {errors.message && <FieldError>{errors.message}</FieldError>}
               </div>
             </div>
 
@@ -349,11 +373,11 @@ export default function ContactPage() {
                 className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-neutral-900 px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {/* White "lightning" bar — soft gradient that rakes
-                    across the dark button continuously. Same animation
-                    as the row-shimmer on the Industries list, just
-                    repainted white so it shines on this CTA instead of
-                    the previous violet hover wash. The label + arrow
-                    sit above it via `relative`. */}
+                    across the dark button continuously.  Matches the
+                    shimmer behaviour wired into each input field
+                    below (where the shimmer runs while the user is
+                    typing).  Label + arrow sit above it via
+                    `relative`. */}
                 <span
                   aria-hidden
                   className="pointer-events-none absolute inset-0 overflow-hidden rounded-full"
@@ -446,9 +470,35 @@ function FieldLabel({
 
 function FieldError({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-2 text-xs font-medium text-violet-600" role="alert">
+    <p className="mt-2 text-xs font-medium text-neutral-900" role="alert">
       {children}
     </p>
+  );
+}
+
+/**
+ * Lightning shimmer overlay rendered on top of an input/textarea's
+ * bottom rule.  Visible only while `active` is true (i.e. the user
+ * is typing); fades out once typing stops so the field returns to
+ * its calm static state.  The static rule itself is rendered by the
+ * caller — this component only paints the moving white sliver.
+ */
+function FieldShimmer({ active }: { active: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden transition-opacity duration-300 ${
+        active ? "opacity-100" : "opacity-0"
+      }`}
+    >
+      <span
+        className="animate-input-shimmer absolute inset-y-0 left-0 w-1/3"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent)",
+        }}
+      />
+    </span>
   );
 }
 
@@ -471,22 +521,80 @@ function Field({
   autoComplete?: string;
   placeholder?: string;
 }) {
+  const isTyping = useTypingState(value);
+
   return (
     <div>
       <FieldLabel required={required}>{label}</FieldLabel>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-        aria-invalid={!!error}
-        className={`mt-1 w-full border-b bg-transparent py-3 text-base text-neutral-900 placeholder-neutral-400 outline-none transition ${
-          error
-            ? "border-violet-500 focus:border-violet-600"
-            : "border-neutral-300 focus:border-neutral-900"
-        }`}
-      />
+      {/*
+        The bottom border is rendered by an absolute span (rather
+        than the input's own `border-b`) so the lightning shimmer
+        can sit exactly on top of the line.  Field-level error
+        state thickens the line to full black so the error message
+        below has a visible anchor without needing a chromatic cue.
+      */}
+      <div className="group relative mt-1">
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          aria-invalid={!!error}
+          className="block w-full border-none bg-transparent py-3 text-base text-neutral-900 placeholder-neutral-400 outline-none"
+        />
+        <span
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 bottom-0 h-px transition-colors ${
+            error
+              ? "bg-neutral-900"
+              : "bg-neutral-300 group-focus-within:bg-neutral-900"
+          }`}
+        />
+        <FieldShimmer active={isTyping} />
+      </div>
+      {error && <FieldError>{error}</FieldError>}
+    </div>
+  );
+}
+
+/**
+ * Multi-line equivalent of `Field` for the project-details message.
+ * Shares the same "static rule + lightning shimmer" treatment so the
+ * textarea behaves identically to the single-line inputs above it.
+ */
+function MessageField({
+  value,
+  onChange,
+  error,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  error?: string;
+}) {
+  const isTyping = useTypingState(value);
+
+  return (
+    <div>
+      <div className="group relative mt-1">
+        <textarea
+          value={value}
+          onChange={onChange}
+          rows={4}
+          placeholder="Tell us a bit about your project…"
+          aria-invalid={!!error}
+          className="block w-full resize-none border-none bg-transparent py-3 text-base text-neutral-900 placeholder-neutral-400 outline-none"
+        />
+        <span
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 bottom-0 h-px transition-colors ${
+            error
+              ? "bg-neutral-900"
+              : "bg-neutral-300 group-focus-within:bg-neutral-900"
+          }`}
+        />
+        <FieldShimmer active={isTyping} />
+      </div>
       {error && <FieldError>{error}</FieldError>}
     </div>
   );

@@ -224,6 +224,26 @@ body {
   display: none;
 }
 
+/* Hide the document-level scrollbar everywhere.  The FullPageScroller
+   pages already swallow scroll via fixed positioning, but on Windows
+   browsers a ghost native scrollbar can still flicker into view as
+   the dock pop-up animates (and on long Next.js routed pages like
+   /blog or /contact a native scrollbar appears whenever the content
+   exceeds the viewport).  Hiding it globally keeps the visual surface
+   clean while preserving wheel / keyboard / touch scrolling. */
+html {
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+body {
+  scrollbar-width: none;
+}
+body::-webkit-scrollbar {
+  display: none;
+}
+
 [data-reveal] {
   opacity: 0;
   transform: translateY(32px);
@@ -450,6 +470,72 @@ body {
   .ai-aura-breathe,
   .ai-radar-pulse,
   .ai-screw-ring {
+    animation: none !important;
+  }
+}
+
+/* ---------- Services title — letter-by-letter reveal ----------
+   Each character of the title (e.g. "Services") is wrapped in a
+   `.title-letter` span.  When the parent slide becomes active (or
+   when the global `is-revealed` flag is set on the parent for non-FPS
+   routes), the letters rise + fade in in sequence with a blur
+   release.  The per-letter `animation-delay` is set inline at the
+   call-site so we can tune the stagger without editing this file. */
+@keyframes title-letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(60%);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.title-letter {
+  display: inline-block;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+[data-slide-active="true"] .title-letter,
+[data-reveal].is-revealed .title-letter {
+  animation: title-letter-in 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-letter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* ---------- Input "lightning" shimmer ----------
+   A 1px-tall white gradient bar that sweeps across the bottom border
+   of an input while the user is typing.  Identical motion to
+   `.animate-row-shimmer` (used on the contact-page submit button)
+   but exposed under a dedicated class so its lifecycle (visible
+   while typing, hidden when idle) doesn't have to share a name with
+   the always-on button shimmer. */
+@keyframes input-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.animate-input-shimmer {
+  animation: input-shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-input-shimmer {
     animation: none !important;
   }
 }
