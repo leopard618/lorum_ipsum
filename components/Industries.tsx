@@ -51,7 +51,11 @@ const SLOT_PAIRS: Array<[number, number]> = [
 const HEADING_WORDS = ["serve", "are into"];
 
 const CYCLE_MS = 9000;
-const EXIT_MS = 900;
+// Section reveal/exit timing — tightened from 900ms→600ms (and the
+// per-letter / per-row durations from 1000ms→700ms below) so the
+// industry list flips ~0.8s faster on every phase change without
+// losing the staggered "letters spring in" feel.
+const EXIT_MS = 600;
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 export default function Industries() {
@@ -216,7 +220,7 @@ export default function Industries() {
           <div className="w-full lg:w-[44rem]">
             {/* Three-slot industry list */}
             <div
-              className={`transition-[opacity,transform,filter] duration-[900ms] ease-out ${
+              className={`transition-[opacity,transform,filter] duration-[600ms] ease-out ${
                 exiting
                   ? "-translate-y-3 opacity-0 blur-[3px]"
                   : "translate-y-0 opacity-100 blur-none"
@@ -235,7 +239,7 @@ export default function Industries() {
                     key={`${phase}-${slotIdx}`}
                     name={ind.name}
                     number={number}
-                    delay={slotIdx * 260}
+                    delay={slotIdx * 180}
                     shimmer={shimmer}
                     isDimmed={isDimmed}
                     isSelected={selectedIdx === industryIdx}
@@ -341,7 +345,7 @@ function AnimatedWord({ word, phase }: { word: string; phase: number }) {
           key={`${phase}-${i}`}
           className="inline-block"
           style={{
-            animation: `ind-letter-in 1000ms ${140 + i * 65}ms ${EASE} both`,
+            animation: `ind-letter-in 700ms ${100 + i * 45}ms ${EASE} both`,
           }}
         >
           {char === " " ? "\u00A0" : char}
@@ -391,7 +395,7 @@ function IndustryRow({
           isSelected ? "text-black" : "text-black/40"
         }`}
         style={{
-          animation: `ind-row-in 1000ms ${delay}ms ${EASE} both`,
+          animation: `ind-row-in 700ms ${delay}ms ${EASE} both`,
         }}
       >
         {String(number).padStart(2, "0")}
@@ -402,7 +406,7 @@ function IndustryRow({
             key={i}
             className="inline-block"
             style={{
-              animation: `ind-letter-in 1000ms ${delay + 180 + i * 55}ms ${EASE} both`,
+              animation: `ind-letter-in 700ms ${delay + 140 + i * 45}ms ${EASE} both`,
             }}
           >
             {char === " " ? "\u00A0" : char}
