@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import SiteLock from "@/components/SiteLock";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -32,7 +33,7 @@ export default function RootLayout({
       className={`${poppins.variable} ${pressStart2P.variable}`}
     >
       <body className="bg-black font-sans text-white antialiased">
-        {children}
+        <SiteLock>{children}</SiteLock>
       </body>
     </html>
   );

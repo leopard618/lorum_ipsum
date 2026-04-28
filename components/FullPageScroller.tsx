@@ -31,6 +31,13 @@ export type FpsControls = {
   advance: () => void;
   retreat: () => void;
   stepCount: number;
+  /** Index of the active step in `stepMap` (each horizontal panel
+   *  counts as its own step; vertical/dock slides count as one). */
+  currentStep: number;
+  /** Index of the active vertical slide (i.e. `stepMap[currentStep].slide`),
+   *  ignoring horizontal sub-panels. Useful for content rendered in the
+   *  scroller's `backdrop` slot that needs to animate per-slide. */
+  currentSlide: number;
 };
 
 const FpsControlsContext = createContext<FpsControls | null>(null);
@@ -45,6 +52,8 @@ export function useFpsControls(): FpsControls {
       advance: () => {},
       retreat: () => {},
       stepCount: 0,
+      currentStep: 0,
+      currentSlide: 0,
     };
   }
   return ctx;
@@ -81,6 +90,7 @@ export default function FullPageScroller({
   slides,
   children,
   theme = "dark",
+  backdrop,
 }: {
   slides: Slide[];
   /**
@@ -101,6 +111,20 @@ export default function FullPageScroller({
    *   white sections during transitions.
    */
   theme?: "dark" | "light";
+  /**
+   * Optional fixed backdrop element rendered behind the entire slide
+   * column. It sits inside the scroller's outer fixed container so it
+   * stays anchored to the viewport (does NOT translate with the
+   * column) — perfect for sharing one image across multiple slides
+   * that should appear visually continuous (e.g. a cover photo whose
+   * "1/4 strip" peeks through slide 1 then expands to fill slide 2).
+   *
+   * When `backdrop` is provided, the slides MUST own their own
+   * backgrounds (transparent slides will reveal the backdrop) and the
+   * outer canvas bg is dropped so the backdrop is the only thing
+   * behind the column.
+   */
+  backdrop?: ReactNode;
 }) {
   const stepMap = useMemo<StepMeta[]>(() => {
     const map: StepMeta[] = [];
@@ -310,9 +334,17 @@ export default function FullPageScroller({
   const advance = useCallback(() => go(1), [go]);
   const retreat = useCallback(() => go(-1), [go]);
 
+  const currentSlideIdx = current?.slide ?? 0;
   const controls = useMemo<FpsControls>(
-    () => ({ goto, advance, retreat, stepCount: count }),
-    [goto, advance, retreat, count],
+    () => ({
+      goto,
+      advance,
+      retreat,
+      stepCount: count,
+      currentStep: step,
+      currentSlide: currentSlideIdx,
+    }),
+    [goto, advance, retreat, count, step, currentSlideIdx],
   );
 
   // Deep-link support: when the page is loaded (or navigated back to)
@@ -521,11 +553,22 @@ export default function FullPageScroller({
   return (
     <FpsControlsContext.Provider value={controls}>
       <div
-        className={`fixed inset-x-0 top-0 overflow-hidden ${isLight ? "bg-white" : "bg-black"}`}
+        className={`fixed inset-x-0 top-0 overflow-hidden ${
+          backdrop ? "" : isLight ? "bg-white" : "bg-black"
+        }`}
         style={{ height: slideHeight }}
       >
+        {/* Backdrop layer — sits behind the slide column. When the
+            consumer passes a `backdrop`, the outer bg is dropped so
+            this element is the only thing painted underneath the
+            slides; transparent regions in any slide will reveal it. */}
+        {backdrop && (
+          <div className="pointer-events-none absolute inset-0">
+            {backdrop}
+          </div>
+        )}
         <div
-          className="w-full"
+          className="relative w-full"
           style={{
             height: slideHeight,
             transform: `translate3d(0, ${translateYPx}px, 0)`,
