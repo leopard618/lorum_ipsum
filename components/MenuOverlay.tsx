@@ -511,8 +511,8 @@ function ScheduleCallDialog({
     setDateError(null);
     setTimeError(null);
     setStatus("idle");
-    const t = window.setTimeout(() => nameRef.current?.focus(), 120);
-    return () => window.clearTimeout(t);
+    const t = setTimeout(() => nameRef.current?.focus(), 120);
+    return () => clearTimeout(t);
   }, [open]);
 
   // If the user changes the date, drop a previously-chosen time iff
@@ -611,9 +611,9 @@ function ScheduleCallDialog({
     if (status === "submitting") return;
     if (!validate()) return;
     setStatus("submitting");
-    window.setTimeout(() => {
+    setTimeout(() => {
       setStatus("success");
-      closeTimer.current = window.setTimeout(onClose, 2200);
+      closeTimer.current = setTimeout(onClose, 2200);
     }, 350);
   };
 
