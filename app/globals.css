@@ -560,7 +560,8 @@ body::-webkit-scrollbar {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-input-shimmer {
+  .animate-input-shimmer,
+  .animate-row-shimmer {
     animation: none !important;
   }
 }

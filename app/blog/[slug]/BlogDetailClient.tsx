@@ -117,15 +117,15 @@ function HeroHalf({ post }: { post: BlogPost }) {
           <BreadcrumbPills post={post} variant="dark" />
         </div>
 
-        {/* Spacers — flex-[5] above + flex-1 below sits the title +
-            description group ~83% of the way down the column, near
-            the bottom edge (but still clear of the menu trigger
-            circle) so the photo gets the most visual real estate. */}
-        <div className="flex-[5]" />
+        {/* `flex-1` spacer above + nothing below pins the title +
+            description group flush to the BOTTOM-LEFT of the column
+            (just clear of the column's own `lg:pb-16` padding so the
+            text isn't kissing the photo's edge). */}
+        <div className="flex-1" />
 
         {/* Title + mini description, grouped together so the
-            description reads directly under the title (not stranded
-            at the bottom of the column). */}
+            description reads directly under the title.  Anchored to
+            the bottom of the column. */}
         <div className="space-y-5 sm:space-y-6 lg:space-y-5">
           <h1
             data-reveal
@@ -150,10 +150,6 @@ function HeroHalf({ post }: { post: BlogPost }) {
             )}
           </div>
         </div>
-
-        {/* Bottom spacer — paired with the upper one to give the
-            title group its ~83%-from-top resting position. */}
-        <div className="flex-1" />
       </div>
     </section>
   );

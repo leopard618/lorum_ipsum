@@ -313,9 +313,8 @@ export default function ContactPage() {
             style={{ transitionDelay: "180ms" }}
             className="lg:col-span-4 text-base leading-relaxed text-neutral-600"
           >
-            Tell us about the product, the timeline, the constraints — and
-            anything else that matters. We read every message and reply
-            within one business day.
+            Tell us about your product, timeline, and constraints — we&apos;ll
+            reply within one business day.
           </p>
         </div>
 
@@ -406,7 +405,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-neutral-900 px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-full bg-neutral-900 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {/* White "lightning" bar — soft gradient that rakes
                     across the dark button continuously.  Matches the
@@ -434,7 +433,7 @@ export default function ContactPage() {
                       ? "Sent"
                       : "Send message"}
                 </span>
-                <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="relative h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
 

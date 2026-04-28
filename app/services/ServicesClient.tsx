@@ -200,7 +200,15 @@ function BrandHeader({ tone }: { tone: "light" | "dark" }) {
     : "decoration-neutral-400 hover:decoration-neutral-900";
 
   return (
-    <header className="relative z-[3] mx-auto flex w-full max-w-7xl items-center justify-between px-6 pt-6 sm:px-10 sm:pt-8 lg:px-16 lg:pt-10">
+    // Mobile: column layout with the wordmark on row 1 (which leaves
+    // the right-hand corner clear for the global menu trigger) and
+    // "Get a quote" on row 2 — fixes the overlap with the hamburger
+    // button that we saw on narrow viewports.
+    //
+    // sm+: switches to the original row layout (`flex-row` +
+    // `justify-between`) so the wordmark sits on the left and "Get a
+    // quote" on the right.
+    <header className="relative z-[3] mx-auto flex w-full max-w-7xl flex-col items-start gap-2.5 px-6 pt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:px-10 sm:pt-8 lg:px-16 lg:pt-10">
       <Link
         href="/"
         className={`inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.28em] transition-colors ${textClass} ${wordmarkHover}`}
@@ -211,7 +219,7 @@ function BrandHeader({ tone }: { tone: "light" | "dark" }) {
 
       <Link
         href="/contact"
-        className={`text-[12px] font-semibold uppercase tracking-[0.28em] underline-offset-[6px] decoration-1 underline transition-colors ${textClass} ${ctaHover} ${ctaDecoration}`}
+        className={`self-end text-[12px] font-semibold uppercase tracking-[0.28em] underline-offset-[6px] decoration-1 underline transition-colors sm:self-auto ${textClass} ${ctaHover} ${ctaDecoration}`}
       >
         Get a quote
       </Link>
