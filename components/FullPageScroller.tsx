@@ -248,7 +248,32 @@ export default function FullPageScroller({
   }, [current.slide, current.sub, horizontalHovered, slides, stepMap]);
 
   useEffect(() => {
-    const update = () => {
+    /**
+     * Returns true when the user is currently focused on a form
+     * control, in which case a `visualViewport` resize is almost
+     * certainly the soft keyboard popping up rather than the URL
+     * bar collapsing.  Re-snapping slide heights mid-keyboard
+     * shoves the dock pop-up off-screen behind the keyboard (which
+     * showed up as a blank white viewport on `/services` when the
+     * Subscribe input was tapped), so we skip those updates and
+     * let the browser's native keyboard handling deal with the
+     * focused field instead.
+     */
+    const isFormFocused = () => {
+      if (typeof document === "undefined") return false;
+      const el = document.activeElement;
+      if (!el) return false;
+      const tag = el.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+        return true;
+      }
+      // contenteditable elements behave the same way w/r/t the soft
+      // keyboard, so treat them as focused form controls too.
+      return el instanceof HTMLElement && el.isContentEditable;
+    };
+
+    const update = (opts: { force?: boolean } = {}) => {
+      if (!opts.force && isFormFocused()) return;
       // Prefer `visualViewport.height` over `innerHeight` for the
       // *visible* viewport area on mobile. On iOS Safari (and similarly
       // on Android Chrome with the URL bar showing) `innerHeight` returns
@@ -264,18 +289,35 @@ export default function FullPageScroller({
       }
       setMeasurements({ viewportH, dockHeights });
     };
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("orientationchange", update);
+
+    // Initial measurement (and orientation change) always runs — even if
+    // an input is focused — so the layout is correct on first paint.
+    update({ force: true });
+
+    const onResize = () => update();
+    const onOrientationChange = () => update({ force: true });
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onOrientationChange);
     // Visual viewport fires its own resize event when the mobile browser
     // shows/hides its URL bar — listen so we re-snap slide heights to
     // the new visible area instead of leaving a stale measurement.
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
-    vv?.addEventListener("resize", update);
+    vv?.addEventListener("resize", onResize);
+    // When a form input loses focus the keyboard is dismissed; re-snap
+    // the layout to the post-keyboard viewport so any stale measurement
+    // from before the focus is corrected.
+    const onFocusOut = () => {
+      // Defer one tick so `document.activeElement` has settled to
+      // whatever the new focus is (or `<body>` when nothing is focused).
+      setTimeout(() => update(), 0);
+    };
+    document.addEventListener("focusout", onFocusOut);
     return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("orientationchange", update);
-      vv?.removeEventListener("resize", update);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onOrientationChange);
+      vv?.removeEventListener("resize", onResize);
+      document.removeEventListener("focusout", onFocusOut);
     };
   }, [slides]);
 

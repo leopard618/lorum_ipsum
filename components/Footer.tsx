@@ -13,10 +13,15 @@ export default function Footer() {
     // higher than the previous 55vh — feedback was that the footer
     // was sitting too low on the home page, leaving a tall band of
     // the previous slide visible above it.
+    //
+    // On mobile we keep the footer paddings tight (`pt-7`, smaller
+    // gaps) and add a `safe-area-inset-bottom` cushion to the bottom
+    // bar so the browser's home / back / multitasking chrome doesn't
+    // occlude the copyright row + back-to-top button.
     <footer className="relative flex flex-col overflow-hidden bg-black text-white lg:min-h-[68vh]">
       {/* TOP — Subscribe panel + navigation columns. */}
-      <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-10 sm:px-12 sm:pt-12 lg:px-16 lg:pt-14">
-        <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-12">
+      <div className="relative z-[1] mx-auto w-full max-w-7xl px-6 pt-7 sm:px-12 sm:pt-12 lg:px-16 lg:pt-14">
+        <div className="grid grid-cols-1 gap-7 sm:gap-12 lg:grid-cols-12 lg:gap-12">
           {/* LEFT — newsletter pitch + social row.  The email input
               now lives at the top of the right column so it reads as
               "next to" the Subscribe headline rather than below it. */}
@@ -85,13 +90,13 @@ export default function Footer() {
               The input is given its own row so it occupies the same
               vertical band as the Subscribe headline on the left,
               reading horizontally as one "headline + input" unit. */}
-          <div className="flex flex-col gap-10 sm:gap-12 lg:col-span-7">
+          <div className="flex flex-col gap-6 sm:gap-12 lg:col-span-7">
             <NewsletterForm />
 
             <div
               data-reveal
               style={{ transitionDelay: "320ms" }}
-              className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 sm:gap-x-10"
+              className="grid grid-cols-2 gap-x-8 gap-y-7 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-10"
             >
               <FooterColumn
                 title="Quick Links"
@@ -116,14 +121,18 @@ export default function Footer() {
       </div>
 
       {/* BOTTOM BAR — copyright on the left, lone up-arrow back-to-top
-          on the right.  No "Back to top" text any more — just the
-          icon button. */}
+          on the right.  Mobile bottom padding adds a `safe-area-inset`
+          cushion so Android Chrome's home / back / multitasking row
+          doesn't occlude the copyright + button. */}
       <div
         data-reveal
-        style={{ transitionDelay: "360ms" }}
-        className="relative z-[1] mx-auto mt-10 w-full max-w-7xl px-6 pb-6 sm:mt-12 sm:px-12 sm:pb-7 lg:mt-14 lg:px-16"
+        style={{
+          transitionDelay: "360ms",
+          paddingBottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))",
+        }}
+        className="relative z-[1] mx-auto mt-6 w-full max-w-7xl px-6 sm:mt-12 sm:px-12 lg:mt-14 lg:px-16"
       >
-        <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-5 sm:pt-6">
+        <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-4 sm:pt-6">
           <p className="text-xs text-white/50">
             © <span className="text-white/70">2026</span> Lorum Ipsum. All
             rights reserved.

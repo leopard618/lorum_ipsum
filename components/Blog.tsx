@@ -159,7 +159,7 @@ export default function Blog() {
                 href={`/blog/${post.slug}`}
                 data-reveal
                 style={{ transitionDelay: "220ms" }}
-                className="mt-5 inline-block text-[2.5rem] font-extrabold uppercase leading-[0.95] tracking-tight text-white transition-colors duration-300 hover:text-violet-200 sm:mt-6 sm:text-6xl lg:text-7xl"
+                className="mt-5 inline-block text-[2.5rem] font-extrabold uppercase leading-[0.95] tracking-tight text-white transition-colors duration-300 hover:text-orange-100 sm:mt-6 sm:text-6xl lg:text-7xl"
                 aria-label={`Read ${post.title}`}
               >
                 {lineOne}
@@ -176,7 +176,7 @@ export default function Blog() {
                 aria-hidden
                 data-reveal
                 style={{ transitionDelay: "360ms" }}
-                className="mt-6 h-[2px] w-24 bg-gradient-to-r from-violet-400 via-white/70 to-transparent"
+                className="mt-6 h-[2px] w-24 bg-gradient-to-r from-orange-300 via-white/80 to-transparent"
               />
 
               <p
