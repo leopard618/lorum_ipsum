@@ -405,13 +405,15 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-full bg-neutral-900 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-full border border-neutral-900 bg-white px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-neutral-900 transition hover:-translate-y-0.5 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {/* White "lightning" bar — soft gradient that rakes
-                    across the dark button continuously.  Matches the
-                    shimmer behaviour wired into each input field
-                    below (where the shimmer runs while the user is
-                    typing).  Label + arrow sit above it via
+                {/* Soft "lightning" bar — pale neutral gradient that
+                    rakes across the white button continuously.
+                    Mirrors the shimmer wired into the input fields
+                    below (which run while the user is typing) but
+                    tuned for a light surface — a translucent black
+                    sliver instead of the white one used on dark
+                    buttons.  Label + arrow sit above it via
                     `relative`. */}
                 <span
                   aria-hidden
@@ -421,7 +423,7 @@ export default function ContactPage() {
                     className="animate-row-shimmer absolute inset-y-0 left-0 w-1/3"
                     style={{
                       background:
-                        "linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)",
+                        "linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)",
                     }}
                   />
                 </span>

@@ -67,23 +67,39 @@ function IndexSection() {
           {/* LEFT — "Services" wordmark.  Pinned to the top of the
               column so its baseline sits next to the right column's
               description paragraph rather than floating in the
-              vertical middle.  Each character is wrapped in a
-              `.title-mask` (overflow-clipping wrapper) + a
-              `.title-letter` (the actual moving glyph): the mask
-              hides the letter while it sits below the baseline, the
-              letter springs up through it on slide entrance with a
-              brief tilt + overshoot.  The inline `animation-delay`
-              staggers the letters left-to-right. */}
+              vertical middle.
+
+              Animation stack (see `app/globals.css` → "Services
+              title — cinematic 3D unfold + chrome sweep"):
+
+              - Each character sits in a `.title-mask` (overflow
+                clipper) with the actual glyph in `.title-letter`.
+                The glyph starts tipped back on the X axis 80°,
+                blurred, scaled-down and well below the baseline,
+                then springs into place with a tiny double-bounce.
+              - The wrapping `.title-3d` element opens its kerning
+                from `+0.06em` to `-0.04em` over 1.5s so the wordmark
+                visibly *settles* into its final tracking.
+              - After the last letter lands, a one-shot specular
+                highlight sweeps across the wordmark via the
+                `.title-3d::after` overlay (it reads `data-text` to
+                paint a `background-clip: text` chrome gradient).
+
+              The inline `animation-delay` per letter (75ms apart)
+              orchestrates the cascade left-to-right; tweaking the
+              base offset (180ms) controls how quickly the first
+              letter starts after the slide becomes active. */}
           <div className="flex min-h-0 min-w-0 flex-col items-start justify-start lg:col-span-5">
             <h1
               aria-label="Services"
-              className="text-[clamp(2.5rem,6.5vw,5.25rem)] font-bold leading-[0.95] tracking-[-0.04em] text-neutral-900"
+              data-text="Services"
+              className="title-3d text-[clamp(2.5rem,6.5vw,5.25rem)] font-bold leading-[0.95] text-neutral-900"
             >
               {Array.from("Services").map((char, i) => (
                 <span key={i} className="title-mask">
                   <span
                     className="title-letter"
-                    style={{ animationDelay: `${140 + i * 55}ms` }}
+                    style={{ animationDelay: `${180 + i * 75}ms` }}
                   >
                     {char}
                   </span>

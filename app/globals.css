@@ -474,36 +474,143 @@ body::-webkit-scrollbar {
   }
 }
 
-/* ---------- Services title — modern "spring through mask" reveal ----------
-   Each character of the title (e.g. "Services") is wrapped in a
-   per-letter mask so it can be clipped while it slides up from
-   below the baseline.  The inner `.title-letter` span carries the
-   actual transform: it starts ~110% below its resting position
-   (entirely outside the mask), tilts in slightly, springs through
-   the resting line with an overshoot, then settles.  Combined with
-   the inline `animation-delay` set at the call-site this gives a
-   staggered, cinema-grade entrance instead of a flat fade-up.  The
-   mask carries a small extra padding-top so the upward overshoot
-   isn't clipped by the mask's top edge. */
+/* ---------- Services title — cinematic 3D unfold + chrome sweep ----------
+   The headline ("Services") is composed character-by-character.  Each
+   letter sits inside a `.title-mask` (an `overflow: hidden` wrapper)
+   that clips the glyph while it sits below the baseline.  The inner
+   `.title-letter` carries the heavy lifting: it tips back on the X
+   axis (`rotateX(82deg)`), slides up from below, scales and de-blurs
+   into place, then settles with a tiny double-bounce overshoot — a
+   pattern lifted from premium editorial title sequences.
+
+   Two extra layers make the entrance feel "designed" rather than
+   "animated":
+
+   1. The wrapping `.title-3d` element opens its kerning during the
+      reveal (`title-kerning`), so the wordmark visibly *settles* into
+      its tighter final letter-spacing instead of starting at it.
+   2. After the letters land, a single chrome-style highlight
+      (`title-shine`) sweeps across the wordmark, painted via a
+      `background-clip: text` gradient.  The sweep runs once and
+      leaves no residue, so the title is calm afterwards.
+
+   Combined with the per-letter `animation-delay` set at the call-
+   site, this gives a layered, cinema-grade entrance rather than a
+   flat fade-up — without needing JS or extra DOM beyond the masks. */
 @keyframes title-letter-in {
   0% {
-    transform: translateY(112%) rotate(6deg);
+    transform: translate3d(0, 118%, -160px) rotateX(82deg) scale(0.94);
     opacity: 0;
-    filter: blur(6px);
+    filter: blur(14px);
   }
-  55% {
-    transform: translateY(-9%) rotate(-1.5deg);
+  35% {
     opacity: 1;
+    filter: blur(3px);
+  }
+  58% {
+    transform: translate3d(0, -7%, 0) rotateX(-5deg) scale(1.025);
     filter: blur(0);
   }
-  78% {
-    transform: translateY(3%) rotate(0.6deg);
+  74% {
+    transform: translate3d(0, 3%, 0) rotateX(2deg) scale(0.992);
+  }
+  88% {
+    transform: translate3d(0, -1.2%, 0) rotateX(-0.6deg) scale(1.004);
   }
   100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
     opacity: 1;
     filter: blur(0);
   }
+}
+
+/* Wordmark-level kerning open: starts loose, tightens into its
+   final tracking as the letters land — a subtle "the headline is
+   composing itself" beat. */
+@keyframes title-kerning {
+  0% {
+    letter-spacing: 0.06em;
+  }
+  100% {
+    letter-spacing: -0.04em;
+  }
+}
+
+/* Single specular sweep across the wordmark.  We render the sweep
+   on a `::after` overlay (positioned over the H1) that is itself a
+   `background-clip: text` gradient — so the highlight only appears
+   on the glyphs themselves and never bleeds into the surrounding
+   layout.  After one pass the overlay fades to nothing. */
+@keyframes title-shine-sweep {
+  0% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -100% 0;
+    opacity: 0;
+  }
+}
+
+.title-3d {
+  display: inline-block;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  letter-spacing: -0.04em;
+  position: relative;
+}
+
+[data-slide-active="true"] .title-3d,
+[data-reveal].is-revealed .title-3d {
+  animation: title-kerning 1500ms cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+
+/* Specular sweep overlay.  We mirror the original glyphs via
+   `data-text` (set on the H1) so the gradient has something to
+   paint, while the underlying letters keep their per-letter spring
+   animation untouched.  The overlay sits exactly on top of the H1
+   thanks to `position: absolute; inset: 0` and inherits all
+   typography from the H1. */
+.title-3d::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.95) 50%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-position: 200% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0;
+  letter-spacing: inherit;
+  /* Mix the highlight into the base glyphs instead of replacing
+     them — overlay keeps the dark base color readable while the
+     sweep looks like real specular light passing across. */
+  mix-blend-mode: screen;
+}
+
+[data-slide-active="true"] .title-3d::after,
+[data-reveal].is-revealed .title-3d::after {
+  /* Delay the sweep until *after* the last letter has roughly
+     landed (last letter's stagger ≈ 7×75ms = 525ms, animation
+     ≈ 1100ms so most of the spring is over by ~1.1s).  We start
+     the sweep at 1.05s so it hits as the title finishes settling. */
+  animation: title-shine-sweep 1300ms cubic-bezier(0.4, 0, 0.2, 1) 1050ms
+    both;
 }
 
 .title-mask {
@@ -513,29 +620,40 @@ body::-webkit-scrollbar {
   /* Headroom so the spring overshoot above the resting line isn't
      sliced off by the mask's top edge.  The negative margin keeps
      the layout box flush so successive masks don't introduce an
-     extra gap above the title. */
-  padding-top: 0.22em;
-  margin-top: -0.22em;
+     extra gap above the title.  We need a touch more headroom than
+     the previous reveal because the 3D tilt now exposes a bit of
+     the glyph above the baseline mid-animation. */
+  padding-top: 0.28em;
+  margin-top: -0.28em;
 }
 
 .title-letter {
   display: inline-block;
   opacity: 0;
-  transform: translateY(112%) rotate(6deg);
+  transform: translate3d(0, 118%, -160px) rotateX(82deg) scale(0.94);
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
   will-change: transform, opacity, filter;
 }
 
 [data-slide-active="true"] .title-letter,
 [data-reveal].is-revealed .title-letter {
-  animation: title-letter-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: title-letter-in 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .title-letter {
+  .title-letter,
+  .title-3d,
+  .title-3d::after {
     animation: none !important;
+  }
+  .title-letter {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
+  }
+  .title-3d::after {
+    opacity: 0 !important;
   }
 }
 

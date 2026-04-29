@@ -125,7 +125,10 @@ function HeroHalf({ post }: { post: BlogPost }) {
 
         {/* Title + mini description, grouped together so the
             description reads directly under the title.  Anchored to
-            the bottom of the column. */}
+            the bottom of the column.  We render the excerpt as a
+            single paragraph (rather than splitting it into a
+            two-column block) so the lockup reads as one tight
+            "headline + dek", not two competing mini descriptions. */}
         <div className="space-y-5 sm:space-y-6 lg:space-y-5">
           <h1
             data-reveal
@@ -135,20 +138,13 @@ function HeroHalf({ post }: { post: BlogPost }) {
             {post.title}
           </h1>
 
-          <div
+          <p
             data-reveal
             style={{ transitionDelay: "320ms" }}
-            className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-1 lg:gap-2.5 xl:grid-cols-2 xl:gap-5"
+            className="max-w-2xl text-[12px] leading-[1.7] text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] sm:text-[12.5px]"
           >
-            <p className="text-[12px] leading-[1.7] text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] sm:text-[12.5px]">
-              {firstSentence(post.excerpt)}
-            </p>
-            {restAfterFirstSentence(post.excerpt) && (
-              <p className="text-[12px] leading-[1.7] text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] sm:text-[12.5px]">
-                {restAfterFirstSentence(post.excerpt)}
-              </p>
-            )}
-          </div>
+            {post.excerpt}
+          </p>
         </div>
       </div>
     </section>
@@ -416,20 +412,6 @@ function breadcrumbsFor(post: BlogPost): string[] {
   const labels = tags.length ? tags : ["Article"];
   if (!labels.includes("The Journal")) labels.push("The Journal");
   return labels.slice(0, 3);
-}
-
-/**
- * Splits the post excerpt into a "first sentence" and "everything else"
- * for the two-column body block. If the excerpt is a single sentence
- * the second column simply renders nothing.
- */
-function firstSentence(text: string): string {
-  const m = text.match(/^[\s\S]*?[.!?](?=\s|$)/);
-  return (m ? m[0] : text).trim();
-}
-function restAfterFirstSentence(text: string): string {
-  const first = firstSentence(text);
-  return text.slice(first.length).trim();
 }
 
 /* ================================ icons ================================== */
