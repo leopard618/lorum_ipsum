@@ -50,12 +50,13 @@ const SLOT_PAIRS: Array<[number, number]> = [
 // The heading's variable word cycles alongside the list.
 const HEADING_WORDS = ["serve", "are into"];
 
-// Auto-advance cadence.  3500ms (3.5s) was chosen by the client
-// after the initial 9s felt sluggish on long-form scroll-throughs.
-// The visible "hold" between transitions is roughly
+// Auto-advance cadence.  4700ms (4.7s) was chosen by the client
+// after iterating from the initial 9s (too sluggish) through 3.5s
+// (too snappy — the headline barely had time to settle before the
+// next swap).  The visible "hold" between transitions is roughly
 // CYCLE_MS - EXIT_MS, so make sure the gap between the two stays
 // large enough for the user to actually read each industry.
-const CYCLE_MS = 3500;
+const CYCLE_MS = 4700;
 // Section reveal/exit timing — tightened from 900ms→600ms (and the
 // per-letter / per-row durations from 1000ms→700ms below) so the
 // industry list flips ~0.8s faster on every phase change without

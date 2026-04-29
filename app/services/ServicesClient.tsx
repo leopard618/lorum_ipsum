@@ -69,26 +69,27 @@ function IndexSection() {
               description paragraph rather than floating in the
               vertical middle.
 
-              Animation stack (see `app/globals.css` → "Services
-              title — cinematic 3D unfold + chrome sweep"):
+              Animation stack (see `app/globals.css` →
+              "Services title — in-place 3D unfold + chrome sweep"):
 
-              - Each character sits in a `.title-mask` (overflow
-                clipper) with the actual glyph in `.title-letter`.
-                The glyph starts tipped back on the X axis 80°,
-                blurred, scaled-down and well below the baseline,
-                then springs into place with a tiny double-bounce.
+              - Each character sits in a `.title-mask` wrapper with
+                the actual glyph in `.title-letter`.  The glyph tips
+                back on the X axis 82°, pulls forward in Z, scales
+                up from 0.94 and de-blurs from 14 px — i.e. it
+                "unfolds toward the viewer" *in place*, never
+                sliding up from below the baseline.
               - The wrapping `.title-3d` element opens its kerning
-                from `+0.06em` to `-0.04em` over 1.5s so the wordmark
-                visibly *settles* into its final tracking.
+                from `+0.06em` to `-0.04em` over 1.5 s so the
+                wordmark visibly *settles* into its final tracking.
               - After the last letter lands, a one-shot specular
-                highlight sweeps across the wordmark via the
-                `.title-3d::after` overlay (it reads `data-text` to
-                paint a `background-clip: text` chrome gradient).
+                highlight sweeps across the wordmark via
+                `.title-3d::after` (paints a `background-clip: text`
+                chrome gradient using `data-text`).
 
-              The inline `animation-delay` per letter (75ms apart)
-              orchestrates the cascade left-to-right; tweaking the
-              base offset (180ms) controls how quickly the first
-              letter starts after the slide becomes active. */}
+              Per-letter `animation-delay` (75 ms apart) orchestrates
+              the cascade left-to-right; tweaking the base offset
+              (180 ms) controls how quickly the first letter starts
+              after the slide becomes active. */}
           <div className="flex min-h-0 min-w-0 flex-col items-start justify-start lg:col-span-5">
             <h1
               aria-label="Services"

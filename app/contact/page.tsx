@@ -301,12 +301,54 @@ export default function ContactPage() {
 
         {/* Heading + description */}
         <div className="mt-6 grid grid-cols-1 items-end gap-8 lg:grid-cols-12 lg:gap-10">
+          {/* Cinematic title — same per-letter 3D unfold + kerning
+              settle + chrome sweep used on `/services`.  See
+              `app/globals.css` → "Services title — in-place 3D unfold
+              + chrome sweep" for the underlying choreography.
+
+              Implementation notes:
+              - The H1 wears both `[data-reveal]` (so the existing
+                page-wide reveal `useEffect` toggles `is-revealed` on
+                it) AND `.title-3d` (so the kerning / chrome sweep
+                fire on the same element).  A dedicated CSS override
+                neutralises the global `[data-reveal]` translateY/blur
+                so we don't get an extra "rises from below" beat on
+                top of the in-place unfold.
+              - Each visible character sits in a `.title-mask` /
+                `.title-letter` pair.  Spaces are rendered as plain
+                non-breaking spans so they preserve width without
+                participating in the per-letter cascade.
+              - The cascade stagger uses a *non-space* index so the
+                visual rhythm is even regardless of how the headline
+                is punctuated. */}
           <h1
             data-reveal
+            aria-label="Let's Collaborate."
+            data-text={"Let's\u00a0Collaborate."}
             style={{ transitionDelay: "80ms" }}
-            className="lg:col-span-8 text-[clamp(2.25rem,6.5vw,5.25rem)] font-bold leading-[0.98] tracking-tight text-neutral-900"
+            className="title-3d lg:col-span-8 text-[clamp(2.25rem,6.5vw,5.25rem)] font-bold leading-[0.98] text-neutral-900"
           >
-            Let&apos;s Collaborate.
+            {(() => {
+              const text = "Let's Collaborate.";
+              let stepIdx = 0;
+              return Array.from(text).map((char, i) => {
+                if (char === " ") {
+                  return <span key={i}>{"\u00a0"}</span>;
+                }
+                const delay = 180 + stepIdx * 75;
+                stepIdx += 1;
+                return (
+                  <span key={i} className="title-mask">
+                    <span
+                      className="title-letter"
+                      style={{ animationDelay: `${delay}ms` }}
+                    >
+                      {char}
+                    </span>
+                  </span>
+                );
+              });
+            })()}
           </h1>
           <p
             data-reveal
